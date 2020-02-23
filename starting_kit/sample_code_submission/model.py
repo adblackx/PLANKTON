@@ -11,9 +11,11 @@ import numpy as np   # We recommend to use numpy arrays
 from os.path import isfile
 from sklearn.base import BaseEstimator
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import ExtraTreesClassifier
+from sklearn.ensemble import RandomForestClassifier
 
 class model (BaseEstimator):
-    def __init__(self,classifier=DecisionTreeClassifier(max_depth=10, max_features = 'sqrt',random_state=42)):
+    def __init__(self,classifier=RandomForestClassifier(n_estimators=191, max_depth=None, min_samples_split=2, random_state=0)):
         '''
         This constructor is supposed to initialize data members.
         Use triple quotes for function documentation. 
