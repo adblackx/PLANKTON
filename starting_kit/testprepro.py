@@ -55,7 +55,7 @@ for i in range(203,0, -10):
     data_fs = data.copy()
     le = preprocessing.LabelEncoder()
     data_fs.target = le.fit_transform(data_fs.target.values)
-    X_fs,Y_fs = prepro.selectFeatures(data_fs, i)
+    X_fs,Y_fs, col = prepro.selectFeatures(data_fs, i)
     X_train, Y_train, X_test, Y_test = prepro.makeTrainAndTestData(X_fs, Y_fs)
     clf.fit(X_train, Y_train)
     Y_predict =  clf.predict(X_test)
