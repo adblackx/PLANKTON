@@ -8,10 +8,13 @@ Actually this program handle pca, features selection and outliers deletion
 We still have to :
     normalize data
     construct features
+    
+préfèrer l'utilisation de fit_transform à fit
 """
 
 from sys import path 
 import pandas as pd
+import numpy as np
 from scipy import stats
 from sklearn.neighbors import LocalOutlierFactor
 from sklearn import preprocessing
@@ -31,7 +34,8 @@ class Preprocessor():
 
     def fit(self, X, Y):
         self.skb = self.skb.fit(X,Y)
-        self.pca = self.pca.fit(X)
+        X_temp = self.skb.transform(X) #car si non pca n'aura pas les bonnes dimensions
+        self.pca = self.pca.fit(X_temp)
         return self
 
     def fit_transform(self, X, Y):
@@ -58,6 +62,8 @@ if __name__=="__main__":
     print("*** Original data ***")
     print(D)
     
+    #Prepro.fit(D.data['X_train'], D.data['Y_train'])
+    #D.data['X_train'] = Prepro.transform(D.data['X_train'])
     D.data['X_train'] = Prepro.fit_transform(D.data['X_train'], D.data['Y_train'])
     D.data['X_valid'] = Prepro.transform(D.data['X_valid'])
     D.data['X_test'] = Prepro.transform(D.data['X_test'])
