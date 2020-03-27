@@ -8,11 +8,6 @@ Actually this program handle pca, features selection and outliers deletion
 We still have to :
     normalize data
     construct features
-Replace it with programs that:
-    normalize data (for instance subtract the mean and divide by the standard deviation of each column)
-    construct features (for instance add new columns with products of pairs of features)
-    re-combine features (PCA)
-    remove outliers (examples far from the median or the mean; can only be done in training data)
 """
 
 from sys import path 
