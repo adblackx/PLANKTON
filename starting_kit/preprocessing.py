@@ -5,43 +5,46 @@ Last revised: Mar 27, 2020
 This program preprocessed data for classification.
 Actually this program handle pca, features selection and outliers deletion
 
-We still have to :
-    normalize data
-    construct features
+TODO :
+    construct features (hard)
+    include outliersDeletion on fit and fit_transform ?
     
 préfèrer l'utilisation de fit_transform à fit
 """
 
-from sys import path 
+model_dir = 'sample_code_submission/'                        # Change the model to a better one once you have one!
+result_dir = 'sample_result_submission/' 
+problem_dir = 'ingestion_program/'  
+score_dir = 'scoring_program/'
+from sys import path; path.append(model_dir); path.append(problem_dir); path.append(score_dir); 
 import pandas as pd
 import numpy as np
-from scipy import stats
 from sklearn.neighbors import LocalOutlierFactor
-from sklearn import preprocessing
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 from sklearn.feature_selection import SelectKBest
 from sklearn.feature_selection import chi2
 from data_manager import DataManager
 from sklearn.preprocessing import MinMaxScaler
-
+from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import RobustScaler
+from sklearn.preprocessing import MaxAbsScaler
+from sklearn.preprocessing import Normalizer
 
 class Preprocessor():
-    def __init__(self,n_components = 2, nb_feat = 193, nbNeighbors = 7):
+    def __init__(self,n_components = 8, nb_feat = 193, nbNeighbors = 3):
         self.skb = SelectKBest(chi2, k= nb_feat)
         self.pca = PCA(n_components)
         self.lof = LocalOutlierFactor(n_neighbors=nbNeighbors)
 
     def fit(self, X, Y):
         self.skb = self.skb.fit(X,Y)
-        X_temp = self.skb.transform(X) #car si non pca n'aura pas les bonnes dimensions
+        X_temp = self.skb.transform(X)
         self.pca = self.pca.fit(X_temp)
         return self
 
     def fit_transform(self, X, Y):
-        X_res = self.skb.fit_transform(X,Y)
-        X_res = self.pca.fit_transform(X_res)
-        return X_res
+        return self.fit(X, Y).transform(X)
 
     def transform(self, X):
         X_res = self.skb.transform(X)
@@ -75,6 +78,4 @@ if __name__=="__main__":
     D.data['X_train'], D.data['Y_train'] = Prepro.outliersDeletion(D.data['X_train'],D.data['Y_train'])
     print("***Outliers Deletion***")
     print(D)
-
-    
     
