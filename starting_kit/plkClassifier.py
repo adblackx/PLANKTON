@@ -24,7 +24,7 @@ with warnings.catch_warnings():
 	from model import model
 	from libscores import get_metric
 	import numpy as np
-	import preprocessing as prep
+	import plkPreprocessing as prep
 
 	from sklearn.metrics import make_scorer
 	from sklearn.model_selection import cross_val_score
