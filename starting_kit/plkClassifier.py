@@ -49,39 +49,6 @@ with warnings.catch_warnings():
 	from sklearn.base import BaseEstimator
 
 
-class plkClassifier(BaseEstimator):
-
-	"""
-	We are still working in this class, we are trying to find the best way to use it with plkAssitClassifier....
-	"""
-
-	'''plkClassifier: a model that using best model from testClassifier'''
-	def __init__(self):
-		'''We replace this model by others model, should be used for usging best model parameters'''
-		self.clf = StackingClassifier( estimators=[('rf', ExtraTreesClassifier()), ('rfc', RandomForestClassifier(n_estimators=116, max_depth=None, min_samples_split=2, random_state=1))], final_estimator=LogisticRegression() )
-
-	def fit(self, X, y):
-		''' This is the training method: parameters are adjusted with training data.'''
-		return self.clf.fit(X, y)
-
-	def predict(self, X):
-		''' This is called to make predictions on test data. Predicted classes are output.'''
-		return self.clf.predict(X)
-
-	def predict_proba(self, X):
-		''' Similar to predict, but probabilities of belonging to a class are output.'''
-		return self.clf.predict_proba(X) # The classes are in the order of the labels returned by get_classes
-
-	def get_classes(self):
-		return self.clf.classes_
-
-	def save(self, path="./"):
-		pickle.dump(self, open(path + '_model.pickle', "w"))
-
-	def load(self, path="./"):
-		self = pickle.load(open(path + '_model.pickle'))
-		return self
-
 class Classifier:
 	"""
 	Class used to run repetitive models and to score and to cross validate faster
@@ -111,13 +78,13 @@ class Classifier:
 	def cross_validation_Classifier(self):
 		metric_name1, scoring_function1 = get_metric()
 		res = cross_val_score(self.M, self.x,self.y, cv=5 ,scoring = make_scorer(scoring_function1))
-		print("cross_validation_Classifier:  " + res)
+		print("cross_validation_Classifier:  ", res)
 		return res
 
 	def training_score_Classifier(self):
 		metric_name1, scoring_function1 = get_metric()
 		res = scoring_function1(self.y,self.ytP)
-		print("training_score_Classifier:  " + res)
+		print("training_score_Classifier:  " , res)
 		return res
 
 class plkAssitClassifier:
@@ -171,7 +138,7 @@ class plkAssitClassifier:
 	    c3=[]
 	    
 	    for i in np.arange(len(model_list)) :
-	    	print("finBest: models runned: " + model_list[i])
+	    	print("finBest: models runned: " , model_list[i])
 	    	M = Classifier(self.x,self.y)
 	    	M.process(x=self.x,y=self.y, model_process = model_list[i] )
 	    	scores = M.cross_validation_Classifier()
