@@ -6,7 +6,9 @@ Created on Sat Mar 21 16:07:53 2020
 @author: Carlo-Elia DONCECCHI & Ugo NZONGANI
 
 This files contains the code produced by the Visualization binomial of the Plankton team.
-Our goal is to create usefull visualization 
+Our goal is to create usefull visualization in order to have a better understanding of the
+problem and a better interpretation of the results
+
 Here is the link of our Jupyter Notebook:
 https://github.com/adblackx/PLANKTON/blob/master/starting_kit/README-Visualisation.ipynb
 
