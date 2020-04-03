@@ -186,7 +186,7 @@ class plkAssitClassifier:
 		for i in range(len(res1)):
 		    if res2[i] > 0.7 and res3[i]>0.7:
 		        self.best_model_namePLK.append(model_nameF[i])
-		        self.best_model_namePLK.append(model_listF[i])
+		        self.best_model_listPLK.append(model_listF[i])
 
 		print("compareModel: best models returned ", self.best_model_namePLK )
 
@@ -196,6 +196,7 @@ class plkAssitClassifier:
 
 		type(plt)
 		plt.show()
+		return best_model_namePLK, best_model_listPLK
 
 
 	def best_param_MODEL(self, logistic, distributions): 
