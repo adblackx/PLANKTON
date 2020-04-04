@@ -46,6 +46,37 @@ with warnings.catch_warnings():
 	from sklearn.linear_model import LogisticRegression
 	from sklearn.base import BaseEstimator
 
+def testplkClassifier(X, Y, model_name, model_list):
+	testAssist = plkc.plkAssitClassifier(model_name, model_list, X, Y)
+	best_model_name, best_model_list = testAssist.compareModel()
+	model_prefinal = testAssist.find_best_param_MODEL(best_model_name, best_model_list)
+
+	for i in range(len(model_prefinal)):
+		M = plkc.Classifier(X,Y)
+		M.process(X,Y, model_process = model_list[i] )
+		M.cross_validation_Classifier()
+		M.training_score_Classifier()
+
+	model_final = testAssist.stacking(model_prefinal)
+	print("DEBUT STACKING ")
+	M1 = plkc.Classifier(X,Y)
+	M1.process(X,Y, model_process = model_final )
+	M1.cross_validation_Classifier()
+	M1.training_score_Classifier()
+
+
+
+def testplkModel(X, Y):
+	A = plkm.plkClassifier(prepP=prep.Preprocessor(n_components = 3))
+	#A.fit(X_train, Y_train)
+	"""	M = plkc.Classifier(A.xPLK,A.yPLK)
+	M.testModel( model_process = A )
+	scores = M.cross_validation_Classifier()"""
+	metric_name1, scoring_function1 = get_metric()
+	res = cross_val_score(A, X, Y, cv=5 , scoring = make_scorer(scoring_function1))
+	print("cross_validation_Classifier:  ", res)
+
+
 if __name__=="__main__":
 	import matplotlib
 	matplotlib.rcParams['backend'] = 'Qt5Agg'
@@ -55,19 +86,12 @@ if __name__=="__main__":
 	model_name = ["Nearest Neighbors", "Random Forest"]
 	model_list = [KNeighborsClassifier(1),  RandomForestClassifier(n_estimators=196, max_depth=None, min_samples_split=2, random_state=19, min_samples_leaf= 7)]
 
-
-	Prepro = prep.Preprocessor() # we use pre-processing
-
 	X_train = D.data['X_train']
 	Y_train = D.data['Y_train'].ravel() 
 
-	A = plkm.plkClassifier()
-	#A.fit(X_train, Y_train)
+	model_nameS = ["ExtraTreesClassifier", "RandomForestClassifier"]
+	model_listS = [ ExtraTreesClassifier() ,RandomForestClassifier(n_estimators=116, max_depth=None, min_samples_split=2, random_state=1)]
 
-	"""	M = plkc.Classifier(A.xPLK,A.yPLK)
-	M.testModel( model_process = A )
-	scores = M.cross_validation_Classifier()"""
+	testplkClassifier(X_train, Y_train, model_nameS, model_listS)
+	#testplkModel(X_train, Y_train)
 
-	metric_name1, scoring_function1 = get_metric()
-	res = cross_val_score(A, X_train, Y_train, cv=5 , scoring = make_scorer(scoring_function1))
-	print("cross_validation_Classifier:  ", res)

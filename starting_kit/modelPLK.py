@@ -53,7 +53,7 @@ class plkClassifier(BaseEstimator):
 	"""
 
 	'''plkClassifier: a model that using best model from testClassifier'''
-	def __init__(self):
+	def __init__(self, prepP=None):
 		'''We replace this model by others model, should be used for usging best model parameters'''
 
 		#self.clf = StackingClassifier( estimators=[('rfc', RandomForestClassifier(n_estimators=116, max_depth=None, min_samples_split=2, random_state=1))], final_estimator=LogisticRegression() )
@@ -64,7 +64,7 @@ class plkClassifier(BaseEstimator):
 					])
 
 		self.clf = pipe_class """
-		
+
 		self.clf = RandomForestClassifier(n_estimators=116, max_depth=None, min_samples_split=2, random_state=1)
 
 		self.xPLK = None
@@ -73,7 +73,10 @@ class plkClassifier(BaseEstimator):
 		self.num_train_samples=0
 		self.num_feat=1
 		self.num_labels=1
-		self.prepo = prep.Preprocessor()
+		if prepP == None:
+			self.prepo = prep.Preprocessor()
+		else :
+			self.prepo = prepP
 
 
 	def fit(self, X, y):
