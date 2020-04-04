@@ -74,10 +74,13 @@ class Classifier:
 		self.ytP = self.M.predict(x)
 		self.yvP = self.M.predict(x)
 
+	def testModel(self, model_process):
+		self.M = model_process
+
 
 	def cross_validation_Classifier(self):
 		metric_name1, scoring_function1 = get_metric()
-		res = cross_val_score(self.M, self.x,self.y, cv=5 ,scoring = make_scorer(scoring_function1))
+		res = cross_val_score(self.M, self.x, self.y, cv=5 , scoring = make_scorer(scoring_function1))
 		print("cross_validation_Classifier:  ", res)
 		return res
 
@@ -196,7 +199,7 @@ class plkAssitClassifier:
 
 		type(plt)
 		plt.show()
-		return best_model_namePLK, best_model_listPLK
+		return self.best_model_namePLK, self.best_model_listPLK
 
 
 	def best_param_MODEL(self, logistic, distributions): 
@@ -327,13 +330,10 @@ if __name__=="__main__":
 	Y_train = D.data['Y_train'].ravel()
 	metric_name, scoring_function = get_metric()"""
 
-	Prepro = prep.Preprocessor() # we use pre-processing
 
 	X_train = D.data['X_train']
 	Y_train = D.data['Y_train'].ravel() 
 
-	X_train, Y_train = Prepro.outliersDeletion(D.data['X_train'],D.data['Y_train'])
-	X_train = Prepro.fit_transform(X_train, Y_train)
 
 
 	metric_name, scoring_function = get_metric()
@@ -366,7 +366,7 @@ if __name__=="__main__":
 	res = []
 
 	for i in np.arange(len(best_model_list)):
-		st = rf + str(i)
+		st = 'rf' + str(i)
 		res.append( (st, best_model_list[i] ))
 
 	testAssist.stacking(res)
