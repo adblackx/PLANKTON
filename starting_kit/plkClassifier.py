@@ -252,7 +252,7 @@ class plkAssitClassifier:
 		print('doBestModel:  Ideal score for the', metric_name, 'metric = %5.4f' % scoring_function(Y_train, Y_train))
 
 
-	def find_best_param_MODEL(self, model):
+	def find_best_param_MODEL(self, model_name, model_list):
 			"""
 		    This function runs the best models and print the results ( test function )
 		    
@@ -264,24 +264,37 @@ class plkAssitClassifier:
 
 
 			#logistic = RandomForestClassifier()
-			print("find_best_param_MODEL: runs methode")
-			logistic = model 
+			res = []
+			for i in range(len(model_list)):
+
+				print("find_best_param_MODEL: runs methode", model_list[i])
+				logistic = model_list[i]
 
 
-			# first tests
-			distributions = dict( n_estimators=np.arange(0,200) , min_samples_split=[0,1,2],random_state=np.arange(0,20,1), min_samples_leaf=np.arange(0,20,1) )
-			#{'random_state': 19, 'n_estimators': 196, 'min_samples_split': 2, 'min_samples_leaf': 7} 
-			# bad results
+				# first tests
+				#distributions = dict( n_estimators=np.arange(0,200) , min_samples_split=[0,1,2],random_state=np.arange(0,20,1), min_samples_leaf=np.arange(0,20,1) )
+				#{'random_state': 19, 'n_estimators': 196, 'min_samples_split': 2, 'min_samples_leaf': 7} 
+				# bad results
 
-			#distributions = dict( n_estimators=np.arange(10,200) , min_samples_split=[2],random_state=[0,1,2] )
-			#distributions = dict( n_estimators=np.arange(150,200) , min_samples_split=[2],random_state=[0,1,2] )
+				#distributions = dict( n_estimators=np.arange(10,200) , min_samples_split=[2],random_state=[0,1,2] )
+				#distributions = dict( n_estimators=np.arange(150,200) , min_samples_split=[2],random_state=[0,1,2] )
+				if model_name[i] == "ExtraTreesClassifier" or model_name[i] == "RandomForestClassifier" :
+					print(model_name[i])
+					distributions = dict( n_estimators=np.arange(1,2) , min_samples_split=[2],random_state=[2] )
+				else :
+					print("pas encore pris en compte.... il n'y a que deux modeles interessant pour le moment")
+				search = self.best_param_MODEL(logistic, distributions)
+				#print(search.best_params_)
+				m = model
+				for v in search.best_params_:
+					m.v = search.best_params_[v]
+					print(search.best_params_[v])
+				res.append(m)
+				#print(search.cv_results_)
+			print("MODEL RENVOYE: ", res)
+			return res
 
-			search = self.best_param_MODEL(logistic, distributions)
-			#print(search.best_params_)
-			#print(search.cv_resultats_)
-
-
-	def stacking(self, model_listS):
+	def stacking(self, model_list):
 		"""
 	    This function runs the best models and print the results ( test function )
 	    
@@ -290,11 +303,23 @@ class plkAssitClassifier:
 	    Model_final: best Model's class
 
 		"""
+		model_listS= []
+		for i in np.arange(len(model_list)):
+			st = 'rf' + str(i)
+			model_listS.append( (st, model_list[i] ))
+
+
+
 		print("stacking: runs methode")
 
 		clf = StackingClassifier(estimators=model_listS, final_estimator=LogisticRegression())
 		self.model_final = model(clf)
+
+		return clf
 		#self.doBestModel() # to see the results
+
+
+
 
 
 
@@ -306,7 +331,8 @@ if __name__=="__main__":
 	D = DataManager(data_name, data_dir) # We reload the data with the AutoML DataManager class because this is more convenient
 
 	model_name = ["Nearest Neighbors", "Random Forest"]
-	model_list = [KNeighborsClassifier(1),  RandomForestClassifier(n_estimators=196, max_depth=None, min_samples_split=2, random_state=19, min_samples_leaf= 7)]
+	model_list = [KNeighborsClassifier(1),  
+				RandomForestClassifier(n_estimators=196, max_depth=None, min_samples_split=2, random_state=19, min_samples_leaf= 7)]
 
 
 	"""model_name = ["Nearest Neighbors",
@@ -342,9 +368,11 @@ if __name__=="__main__":
 
 
 
+
 	#M_Model = model(RandomForestClassifier(n_estimators=100, max_depth=None, min_samples_split=2, random_state=0))
 	#doBestModel(M_Model)
 
+	model_nameS = ["ExtraTreesClassifier", "RandomForestClassifier"]
 	model_listS = [
     ('rf', ExtraTreesClassifier()),
     #('knb',     KNeighborsClassifier(1),
@@ -356,20 +384,35 @@ if __name__=="__main__":
 
 
 
-	testAssist= plkAssitClassifier(model_name, model_list , X_train, Y_train)
+	#testAssist= plkAssitClassifier(model_name, model_list , X_train, Y_train)
 	
-	best_model_name, best_model_list = testAssist.compareModel()
+	#best_model_name, best_model_list = testAssist.compareModel()
 
 
-	#testAssist.find_best_param_MODEL(RandomForestClassifier())
+	#testAssist= plkAssitClassifier(["Random Forest"], [RandomForestClassifier(n_estimators=196, max_depth=None, min_samples_split=2, random_state=19, min_samples_leaf= 7)] , X_train, Y_train)
+	#model_bestParam = testAssist.find_best_param_MODEL(RandomForestClassifier())
+
+	model_nameS1 = ["ExtraTreesClassifier", "RandomForestClassifier"]
+	model_listS1 = [ ExtraTreesClassifier() ,RandomForestClassifier(n_estimators=116, max_depth=None, min_samples_split=2, random_state=1)]
+	testAssist= plkAssitClassifier(model_nameS1, model_listS1, X_train, Y_train)
+
+	model_final = testAssist.stacking(model_listS1)
+	print("DEBUT STACKING ")
+	M1 = Classifier(X_train,Y_train)
+	M1.process(X_train,Y_train, model_process = model_final )
+	M1.cross_validation_Classifier()
+	M1.training_score_Classifier()
+
+	"""
+	print("debut test best param")
+
+	M = Classifier(X_train,Y_train)
+	M.process(X_train,Y_train, model_process = model_bestParam )SS
+	M.cross_validation_Classifier()
+	M.training_score_Classifier()
+	"""
 	#testAssist.doBestModel()
-	res = []
 
-	for i in np.arange(len(best_model_list)):
-		st = 'rf' + str(i)
-		res.append( (st, best_model_list[i] ))
 
-	testAssist.stacking(res)
 
 	#testAssist.stacking(model_listS)
-
