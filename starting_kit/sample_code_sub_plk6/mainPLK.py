@@ -28,7 +28,7 @@ with warnings.catch_warnings():
 	data_dir = 'public_data'          # The sample_data directory should contain only a very small subset of the data
 	data_name = 'plankton'
 	import numpy as np
-	import preprocessing as prep
+	import plkPreprocessing as prep
 
 	from sklearn.metrics import make_scorer
 	from sklearn.model_selection import cross_val_score
@@ -48,7 +48,6 @@ with warnings.catch_warnings():
 	from sklearn.linear_model import LogisticRegression
 	from sklearn.model_selection import RandomizedSearchCV
 	from scipy.stats import uniform
-	from sklearn.ensemble import StackingClassifier
 	from sklearn.linear_model import LogisticRegression
 	from sklearn.base import BaseEstimator
 	from sklearn.datasets import load_wine
@@ -59,14 +58,14 @@ def testplkClassifier(X, Y, model_name, model_list):
 	model_prefinal = testAssist.find_best_param_MODEL(best_model_name, best_model_list)
 	print("model_prefinal ", model_prefinal)
 
-	for i in range(len(model_prefinal)):
+	"""for i in range(len(model_prefinal)):
 		M = plkc.Classifier(X,Y)
 		M.process(X,Y, model_process = model_list[i] )
 		M.cross_validation_Classifier()
-		M.training_score_Classifier()
+		M.training_score_Classifier()"""
 
-	model_final = testAssist.stacking(model_prefinal)
-	print("DEBUT STACKING ")
+	model_final = testAssist.voting(model_prefinal)
+	print("DEBUT VOTING ")
 	M1 = plkc.Classifier(X,Y)
 	M1.process(X,Y, model_process = model_final )
 	M1.cross_validation_Classifier()
@@ -77,7 +76,7 @@ def testplkClassifier(X, Y, model_name, model_list):
 def testplkModel(X, Y):
 	scoring_function1 = getattr(metrics, "balanced_accuracy_score")
 	print(scoring_function1)
-	A = plkm.plkClassifier()
+	A = plkm.model()
 	#A.fit(X_train, Y_train)
 	"""	M = plkc.Classifier(A.xPLK,A.yPLK)
 	M.testModel( model_process = A )
@@ -85,7 +84,7 @@ def testplkModel(X, Y):
 	res = cross_val_score(A, X, Y, cv=5 , scoring = make_scorer(scoring_function1))
 	print("A cross_validation_Classifier:  ", res)
 
-	B = plkm.plkClassifier()
+	B = plkm.model()
 	res = cross_val_score(B, X, Y, cv=5 , scoring = make_scorer(scoring_function1))
 	print("B cross_validation_Classifier:  ", res)
 
@@ -104,8 +103,8 @@ if __name__=="__main__":
 	print(len(X_train))
 	print(len(Y_train))"""
 
-	model_nameS = ["ExtraTreesClassifier", "RandomForestClassifier"]
-	model_listS = [ ExtraTreesClassifier() ,RandomForestClassifier(n_estimators=116, max_depth=None, min_samples_split=2, random_state=1)]
+	model_nameS = ["ExtraTreesClassifier",  "RandomForestClassifier"]
+	model_listS = [ ExtraTreesClassifier() , RandomForestClassifier(n_estimators=116, max_depth=None, min_samples_split=2, random_state=1)]
 
 	X_Random = np.random.rand(10752,203) #105752 lignes et 203 colonnes pour les images
 	Y_Random = np.random.randint(7,size=10752) #105752 lignes et 203 colonnes pour les images

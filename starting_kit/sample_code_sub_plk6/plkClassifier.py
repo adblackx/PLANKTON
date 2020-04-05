@@ -42,7 +42,7 @@ with warnings.catch_warnings():
 
 	from sklearn.linear_model import LogisticRegression
 	from sklearn.model_selection import RandomizedSearchCV
-	from sklearn.ensemble import StackingClassifier
+	from sklearn.ensemble import VotingClassifier
 	from sklearn.linear_model import LogisticRegression
 	from sklearn import metrics
 
@@ -105,6 +105,7 @@ class plkAssitClassifier:
 		self.best_model_namePLK = []
 		self.best_model_listPLK = []
 		self.model_final = None
+		self.seuil = 0.1
 
 	def finBest(self):
 	    
@@ -181,7 +182,8 @@ class plkAssitClassifier:
 
 
 		for i in range(len(res1)):
-		    if res2[i] > 0.7 and res3[i]>0.7:
+		    #if res2[i] > seuil and res3[i]> seuil:
+		    if model_nameF[i] == "ExtraTreesClassifier" or model_nameF[i] == "RandomForestClassifier" :
 		        self.best_model_namePLK.append(model_nameF[i])
 		        self.best_model_listPLK.append(model_listF[i])
 
@@ -287,7 +289,7 @@ class plkAssitClassifier:
 				#print(search.cv_results_)
 			return res
 
-	def stacking(self, model_list):
+	def voting(self, model_list):
 		"""
 	    This function runs the best models and print the results ( test function )
 	    
@@ -303,9 +305,10 @@ class plkAssitClassifier:
 
 
 
-		print("stacking: runs methode")
+		print("voting: runs methode")
 
-		clf = StackingClassifier(estimators=model_listS, final_estimator=LogisticRegression())
+		#clf = StackingClassifier(estimators=model_listS, final_estimator=LogisticRegression())
+		clf = VotingClassifier(estimators=model_listS, voting='soft')
 		self.model_final = clf
 
 		return clf
@@ -328,8 +331,8 @@ class findModel:
 			M.cross_validation_Classifier()
 			M.training_score_Classifier()"""
 
-		model_final = testAssist.stacking(model_prefinal)
-		"""print("DEBUT STACKING ")
+		model_final = testAssist.voting(model_prefinal)
+		"""print("DEBUT voting ")
 		M1 = Classifier(X,Y)
 		M1.process(X,Y, model_process = model_final )
 		M1.cross_validation_Classifier()
@@ -377,10 +380,8 @@ if __name__=="__main__":
 	#X_train = D.data['X_train']
 	#Y_train = D.data['Y_train'].ravel() 
 
-	Data = load_wine()
-	X_train = Data.data
-	Y_train = Data.target
-
+	X_train = np.random.rand(10752,203) #105752 lignes et 203 colonnes pour les images
+	Y_train = np.random.randint(7,size=10752) #105752 lignes et 203 colonnes pour les images
 
 
 	scoring_function = getattr(metrics, "balanced_accuracy_score")
@@ -418,8 +419,8 @@ if __name__=="__main__":
 	print("model_listS1 ",model_listS1)
 	testAssist= plkAssitClassifier(model_nameS1, model_listS1, X_train, Y_train)
 
-	model_final = testAssist.stacking(model_listS1)
-	print("DEBUT STACKING ")
+	model_final = testAssist.voting(model_listS1)
+	print("DEBUT voting ")
 	M1 = Classifier(X_train,Y_train)
 	M1.process(X_train,Y_train, model_process = model_final )
 	M1.cross_validation_Classifier()
@@ -437,4 +438,4 @@ if __name__=="__main__":
 
 
 
-	#testAssist.stacking(model_listS)
+	#testAssist.voting(model_listS)
