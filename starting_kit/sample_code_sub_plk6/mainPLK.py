@@ -107,11 +107,11 @@ if __name__=="__main__":
 	model_nameS = ["ExtraTreesClassifier", "RandomForestClassifier"]
 	model_listS = [ ExtraTreesClassifier() ,RandomForestClassifier(n_estimators=116, max_depth=None, min_samples_split=2, random_state=1)]
 
-	#X_Random = np.random.rand(10752,203) #105752 lignes et 203 colonnes pour les images
-	#Y_Random = np.random.randint(7,size=10752) #105752 lignes et 203 colonnes pour les images
-	Data = load_wine()
-	X_Random = Data.data
-	Y_Random = Data.target
+	X_Random = np.random.rand(10752,203) #105752 lignes et 203 colonnes pour les images
+	Y_Random = np.random.randint(7,size=10752) #105752 lignes et 203 colonnes pour les images
+	#Data = load_wine()
+	#X_Random = Data.data
+	#Y_Random = Data.target
 
 
 	#testplkClassifier(X_Random, Y_Random, model_nameS, model_listS)

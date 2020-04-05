@@ -22,7 +22,7 @@ with warnings.catch_warnings():
 	from model import model
 	from libscores import get_metric
 	import numpy as np
-	import preprocessing as prep
+	import plkPreprocessing as prep
 
 	from sklearn.metrics import make_scorer
 	from sklearn.model_selection import cross_val_score
@@ -91,7 +91,6 @@ if __name__=="__main__":
 
 	model_nameS = ["ExtraTreesClassifier", "RandomForestClassifier"]
 	model_listS = [ ExtraTreesClassifier() ,RandomForestClassifier(n_estimators=116, max_depth=None, min_samples_split=2, random_state=1)]
-
 	testplkClassifier(X_train, Y_train, model_nameS, model_listS)
 	#testplkModel(X_train, Y_train)
 
