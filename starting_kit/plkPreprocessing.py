@@ -1,15 +1,14 @@
 """
 Created on Sat Mar 27 2020
-Last revised: Mar 27, 2020
-@author: mussard_romain
+Last revised: April 4, 2020
+@author: Team Plankton
 This program preprocessed data for classification.
 Actually this program handle pca, features selection and outliers deletion
 
-We still have to :
-    normalize data
-    construct features
-    
-préfèrer l'utilisation de fit_transform à fit
+Last update (April 4):
+    - Creation of findBestSkb
+    - Creation of findBestPca
+    - Creation of findBestkneighbors
 """
 
 from sys import path 
@@ -34,18 +33,14 @@ from sklearn.model_selection import cross_val_score
 from sklearn.pipeline import Pipeline
 from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
 
-def max_indice(x):
-        maxIndice = 0
-        for i in range(len(x)):
-            if x[i]>x[maxIndice]:
-                maxIndice = i
-        return maxIndice    
 
 class Preprocessor(BaseEstimator):
-    def __init__(self,n_components = 2, nb_feat = 193, nbNeighbors = 7):
-        self.skb = SelectKBest(chi2, k= nb_feat)
+    '''n_components == nb_feat ==> no pca'''
+    def __init__(self):
+        n_components = 19
+        nb_feat = 197
+        self.skb = SelectKBest(chi2, k = nb_feat)
         self.pca = PCA(n_components)
-        self.lof = LocalOutlierFactor(n_neighbors=nbNeighbors)
 
     def fit(self, X, Y):
         self.skb = self.skb.fit(X,Y)
@@ -63,46 +58,71 @@ class Preprocessor(BaseEstimator):
         X_res = self.pca.transform(X_res)
         return X_res
     
-    def outliersDeletion(self, X, Y):
-        decision = self.lof.fit_predict(X)
+    def outliersDeletion(X, Y, nbNeighbors = 3):
+        lof = LocalOutlierFactor(n_neighbors=nbNeighbors)
+        decision = lof.fit_predict(X)
         return X[(decision==1)],Y[(decision==1)]
-        
-def findBestPca(self, X, Y):
+
+def max_indice(x):
+        maxIndice = 0
+        for i in range(len(x)):
+            if x[i]>x[maxIndice]:
+                maxIndice = i
+        return maxIndice
+
+
+def findBestSkb(X, Y):
     score = []
     nb_features = []
-    for i in range(3,6):
-        clf = RandomForestClassifier(n_estimators=116, max_depth=None, min_samples_split=2, random_state=1)
-        pipe = Pipeline([('pca', PCA(i)), ('clf', clf)])
+    for i in range(191,203,2):
         Xsauv = np.copy(X)
         Ysauv = np.copy(Y)
-        print(Xsauv.shape)
+        clf = RandomForestClassifier(n_estimators=196, max_depth=None, min_samples_split=2, random_state=1)
+        skb = SelectKBest(chi2, k = i)
+        pipe = Pipeline([('skb', skb), ('clf', clf)])
         metric_name1, scoring_function1 = get_metric()
         res = cross_val_score(pipe, Xsauv, Ysauv, cv=2 , scoring = make_scorer(scoring_function1))
-        score.append((res[0]+res[1])/2)
+        score.append(np.mean(res))
+        nb_features.append(i)
+    it = max_indice(score)
+    print(score)
+    return nb_features[it]  
+
+
+def findBestPca(X, Y, nb_feat = 197):
+    score = []
+    nb_features = []
+    for i in range(1,20,2):
+        Xsauv = np.copy(X)
+        Ysauv = np.copy(Y)
+        clf = RandomForestClassifier(n_estimators=196, max_depth=None, min_samples_split=2, random_state=1)
+        skb = SelectKBest(chi2, k= nb_feat)
+        pipe = Pipeline([('skb', skb), ('pca', PCA(i)), ('clf', clf)])
+        metric_name1, scoring_function1 = get_metric()
+        res = cross_val_score(pipe, Xsauv, Ysauv, cv=2 , scoring = make_scorer(scoring_function1))
+        score.append(np.mean(res))
         nb_features.append(i)
     it = max_indice(score)
     print(score)
     return nb_features[it]
 
-    
-def findBestSkb(self, X, Y):
+
+def findBestKneighbors(X, Y):
     score = []
     nb_features = []
-    for i in range(175,200,5):
+    for i in range(1,10,2):
         Xsauv = np.copy(X)
         Ysauv = np.copy(Y)
-        print(Xsauv.shape)
-        self.pca = PCA(i)
-        A = plkm.plkClassifier(prepP = Preprocessor(nb_feat = i))
+        Xsauv, Ysauv = Preprocessor.outliersDeletion(Xsauv, Ysauv,nbNeighbors=i)
+        clf = RandomForestClassifier(n_estimators=196, max_depth=None, min_samples_split=2, random_state=1)
         metric_name1, scoring_function1 = get_metric()
-        res = cross_val_score(A, Xsauv, Ysauv, cv=2 , scoring = make_scorer(scoring_function1))
-        score.append((res[0]+res[1])/2)
+        res = cross_val_score(clf, Xsauv, Ysauv, cv=2 , scoring = make_scorer(scoring_function1))
+        score.append(np.mean(res))
         nb_features.append(i)
     it = max_indice(score)
     print(score)
     return nb_features[it]
-    
-    
+   
 if __name__=="__main__":
     data_dir = 'public_data'
     data_name = 'plankton'
@@ -124,13 +144,39 @@ if __name__=="__main__":
     print(D)
     
     D = DataManager(data_name, data_dir) # Load data
-    D.data['X_train'], D.data['Y_train'] = Prepro.outliersDeletion(D.data['X_train'],D.data['Y_train'])
+    D.data['X_train'], D.data['Y_train'] = Preprocessor.outliersDeletion(D.data['X_train'],D.data['Y_train'])
     print("***Outliers Deletion***")
     print(D)
     X = D.data['X_train']
     Y = D.data['Y_train']
-    res = findBestPca(X, Y)
-    print("best nb features for pca  = ", res)
+    Xsauv = np.copy(X)
+    Ysauv = np.copy(Y)
+    
+    '''
+    res = findBestKneighbors(X,Y)
+    print("best nb features for otuliersDeletion  = ", res)
+    
+    prep = Preprocessor()
+    X,Y = Preprocessor.outliersDeletion(X,Y, nbNeighbors=res)
+    
+    res1 = findBestSkb(X, Y)
+    print("best nb features for skb  = ", res1)
+    
+    res2 = findBestPca(X, Y, nb_feat=res1)
+    print("best nb features for pca  = ", res2)
+    
+    print("best nb features for otuliersDeletion  = ", res)
+    print("best nb features for skb  = ", res1)
+    print("best nb features for pca  = ", res2)
+    '''
+    
+    clf = RandomForestClassifier(n_estimators=196, max_depth=None, min_samples_split=2, random_state=1)
+    prepro = Preprocessor()
+    pipe = Pipeline([('prepro', prepro), ('clf', clf)])
+    metric_name1, scoring_function1 = get_metric()
+    res = cross_val_score(pipe, Xsauv, Ysauv, cv=2 , scoring = make_scorer(scoring_function1))
+    print(res)
+    
     
     
 
