@@ -12,7 +12,10 @@ problem and a better interpretation of the results
 Here is the link of our Jupyter Notebook:
 https://github.com/adblackx/PLANKTON/blob/master/starting_kit/README-Visualisation.ipynb
 
-Last update: 02/04/2020
+Last update: 02/04/2020:
+    - adding comments
+    - deleting unnecessary variables & lines
+    - made the code more readable & clear
 """
 model_dir = 'sample_code_submission/'
 result_dir = 'sample_result_submission/' 
@@ -70,8 +73,7 @@ Args
 """
 
 def kmeans(X, y, marker_settings, colors, title, title_color, title_size, title_weight):
-    #np.random.seed(42)
-
+    
     data = scale(X)
     # We recover the numbers of features and data (pictures of different plankton)
     n_data, n_features = data.shape
@@ -93,6 +95,7 @@ def kmeans(X, y, marker_settings, colors, title, title_color, title_size, title_
     h = .02     # point in the mesh [x_min, x_max]x[y_min, y_max].
 
     # Plot the decision boundary. For that, we will assign a color to each
+    np.random.seed(42)
     x_min, x_max = reduced_data[:, 0].min() - 1, reduced_data[:, 0].max() + 1
     y_min, y_max = reduced_data[:, 1].min() - 1, reduced_data[:, 1].max() + 1
     xx, yy = np.meshgrid(np.arange(x_min, x_max, h), np.arange(y_min, y_max, h))
