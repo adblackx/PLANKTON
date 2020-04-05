@@ -30,7 +30,7 @@ class plkClassifier(BaseEstimator):
 		
 		pipe_class = Pipeline([
 					('preprocessing', prep.Preprocessor() ),
-					('classification', RandomForestClassifier(n_estimators=116, max_depth=None, min_samples_split=2, random_state=1))
+					('classification', RandomForestClassifier(n_estimators=196, max_depth=None, min_samples_split=2, random_state=1))
 					])
 
 		self.clf =  RandomForestClassifier(n_estimators=196, max_depth=None, min_samples_split=2, random_state=1) 
