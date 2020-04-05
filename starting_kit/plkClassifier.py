@@ -1,12 +1,17 @@
-model_dir = 'sample_code_submission/'                        # Change the model to a better one once you have one!
-result_dir = 'sample_result_submission/' 
-problem_dir = 'ingestion_program/'  
-score_dir = 'scoring_program/'
+"""
+Created on Sat Mar 27 2020
+Last revised: April 5, 2020
+@author: mouloua ramdane
+
+
+"""
+
+other_files = 'other_files/'
 
 from sys import path; 
-path.append(model_dir); 
-path.append(problem_dir); 
-path.append(score_dir); 
+path.append(other_files); 
+
+
 
 import warnings
 
@@ -19,13 +24,7 @@ with warnings.catch_warnings():
 	import pandas as pd
 	data_dir = 'public_data'          # The sample_data directory should contain only a very small subset of the data
 	data_name = 'plankton'
-	from data_manager import DataManager
-	from data_io import write
-	from model import model
-	from libscores import get_metric
 	import numpy as np
-	import plkPreprocessing as prep
-
 	from sklearn.metrics import make_scorer
 	from sklearn.model_selection import cross_val_score
 
@@ -43,10 +42,10 @@ with warnings.catch_warnings():
 
 	from sklearn.linear_model import LogisticRegression
 	from sklearn.model_selection import RandomizedSearchCV
-	from scipy.stats import uniform
-	from sklearn.ensemble import StackingClassifier
+	from sklearn.ensemble import VotingClassifier
 	from sklearn.linear_model import LogisticRegression
-	from sklearn.base import BaseEstimator
+	from sklearn import metrics
+
 
 
 class Classifier:
@@ -63,13 +62,8 @@ class Classifier:
 
 	def process(self, x, y, model_process):
 		print("process")
-		self.M = model(classifier=model_process)
-		trained_model_name = model_dir + data_name
-		if not(self.M.is_trained):
-			self.M.fit(self.x,self.y)
-
-		self.M.save(trained_model_name)                 
-		result_name = result_dir + data_name
+		self.M = model_process
+		self.M.fit(self.x,self.y)
 
 		self.ytP = self.M.predict(x)
 		self.yvP = self.M.predict(x)
@@ -79,13 +73,13 @@ class Classifier:
 
 
 	def cross_validation_Classifier(self):
-		metric_name1, scoring_function1 = get_metric()
+		scoring_function1 = getattr(metrics, "balanced_accuracy_score")
 		res = cross_val_score(self.M, self.x, self.y, cv=5 , scoring = make_scorer(scoring_function1))
 		print("cross_validation_Classifier:  ", res)
 		return res
 
 	def training_score_Classifier(self):
-		metric_name1, scoring_function1 = get_metric()
+		scoring_function1 = getattr(metrics, "balanced_accuracy_score")
 		res = scoring_function1(self.y,self.ytP)
 		print("training_score_Classifier:  " , res)
 		return res
@@ -111,6 +105,7 @@ class plkAssitClassifier:
 		self.best_model_namePLK = []
 		self.best_model_listPLK = []
 		self.model_final = None
+		self.seuil = 0.1
 
 	def finBest(self):
 	    
@@ -187,7 +182,8 @@ class plkAssitClassifier:
 
 
 		for i in range(len(res1)):
-		    if res2[i] > 0.7 and res3[i]>0.7:
+		    #if res2[i] > seuil and res3[i]> seuil:
+		    if model_nameF[i] == "ExtraTreesClassifier" or model_nameF[i] == "RandomForestClassifier" :
 		        self.best_model_namePLK.append(model_nameF[i])
 		        self.best_model_listPLK.append(model_listF[i])
 
@@ -195,10 +191,10 @@ class plkAssitClassifier:
 
 		frame[['Cross-Validation ', 'train ']].plot.bar()
 		#plt.ylim(0.5, 1)
-		plt.ylabel(sklearn_metric.__name__)
+		"""plt.ylabel(sklearn_metric.__name__)
 
 		type(plt)
-		plt.show()
+		plt.show()"""
 		return self.best_model_namePLK, self.best_model_listPLK
 
 
@@ -219,7 +215,7 @@ class plkAssitClassifier:
 
 	    """
 	    print("best_param_MODEL: ")
-	    metric_name, scoring_function = get_metric()
+	    scoring_function = getattr(metrics, "balanced_accuracy_score")
 
 	    clf = RandomizedSearchCV(logistic, distributions, random_state=0, scoring=make_scorer(scoring_function) )
 	    search = clf.fit(self.x, self.y)
@@ -285,16 +281,15 @@ class plkAssitClassifier:
 					print("pas encore pris en compte.... il n'y a que deux modeles interessant pour le moment")
 				search = self.best_param_MODEL(logistic, distributions)
 				#print(search.best_params_)
-				m = model
+				m = model_list[i]
 				for v in search.best_params_:
 					m.v = search.best_params_[v]
 					print(search.best_params_[v])
 				res.append(m)
 				#print(search.cv_results_)
-			print("MODEL RENVOYE: ", res)
 			return res
 
-	def stacking(self, model_list):
+	def voting(self, model_list):
 		"""
 	    This function runs the best models and print the results ( test function )
 	    
@@ -310,15 +305,40 @@ class plkAssitClassifier:
 
 
 
-		print("stacking: runs methode")
+		print("voting: runs methode")
 
-		clf = StackingClassifier(estimators=model_listS, final_estimator=LogisticRegression())
-		self.model_final = model(clf)
+		#clf = StackingClassifier(estimators=model_listS, final_estimator=LogisticRegression())
+		clf = VotingClassifier(estimators=model_listS, voting='soft')
+		self.model_final = clf
 
 		return clf
 		#self.doBestModel() # to see the results
 
+class findModel:
 
+	def __init__(self):
+		self.model_name = ["ExtraTreesClassifier", "RandomForestClassifier"]
+		self.model_list = [ ExtraTreesClassifier() ,RandomForestClassifier(n_estimators=116, max_depth=None, min_samples_split=2, random_state=1)]
+
+	def getModel(self,X,Y):
+		testAssist = plkAssitClassifier(self.model_name, self.model_list, X, Y)
+		best_model_name, best_model_list = testAssist.compareModel()
+		model_prefinal = testAssist.find_best_param_MODEL(best_model_name, best_model_list)
+
+		"""for i in range(len(model_prefinal)):
+			M = plkc.Classifier(X,Y)
+			M.process(X,Y, model_process = model_list[i] )
+			M.cross_validation_Classifier()
+			M.training_score_Classifier()"""
+
+		model_final = testAssist.voting(model_prefinal)
+		"""print("DEBUT voting ")
+		M1 = Classifier(X,Y)
+		M1.process(X,Y, model_process = model_final )
+		M1.cross_validation_Classifier()
+		M1.training_score_Classifier()"""
+
+		return model_final
 
 
 
@@ -328,7 +348,7 @@ if __name__=="__main__":
 	import matplotlib
 	matplotlib.rcParams['backend'] = 'Qt5Agg'
 	matplotlib.get_backend()
-	D = DataManager(data_name, data_dir) # We reload the data with the AutoML DataManager class because this is more convenient
+	# = DataManager(data_name, data_dir) # We reload the data with the AutoML DataManager class because this is more convenient
 
 	model_name = ["Nearest Neighbors", "Random Forest"]
 	model_list = [KNeighborsClassifier(1),  
@@ -354,15 +374,17 @@ if __name__=="__main__":
 
 	X_train = D.data['X_train']
 	Y_train = D.data['Y_train'].ravel()
-	metric_name, scoring_function = get_metric()"""
+	scoring_function = getattr(metrics, "balanced_accuracy_score")"""
 
 
-	X_train = D.data['X_train']
-	Y_train = D.data['Y_train'].ravel() 
+	#X_train = D.data['X_train']
+	#Y_train = D.data['Y_train'].ravel() 
+
+	X_train = np.random.rand(10752,203) #105752 lignes et 203 colonnes pour les images
+	Y_train = np.random.randint(7,size=10752) #105752 lignes et 203 colonnes pour les images
 
 
-
-	metric_name, scoring_function = get_metric()
+	scoring_function = getattr(metrics, "balanced_accuracy_score")
 
 	#compareModel(model_name, model_list)
 
@@ -394,10 +416,11 @@ if __name__=="__main__":
 
 	model_nameS1 = ["ExtraTreesClassifier", "RandomForestClassifier"]
 	model_listS1 = [ ExtraTreesClassifier() ,RandomForestClassifier(n_estimators=116, max_depth=None, min_samples_split=2, random_state=1)]
+	print("model_listS1 ",model_listS1)
 	testAssist= plkAssitClassifier(model_nameS1, model_listS1, X_train, Y_train)
 
-	model_final = testAssist.stacking(model_listS1)
-	print("DEBUT STACKING ")
+	model_final = testAssist.voting(model_listS1)
+	print("DEBUT voting ")
 	M1 = Classifier(X_train,Y_train)
 	M1.process(X_train,Y_train, model_process = model_final )
 	M1.cross_validation_Classifier()
@@ -415,4 +438,4 @@ if __name__=="__main__":
 
 
 
-	#testAssist.stacking(model_listS)
+	#testAssist.voting(model_listS)
