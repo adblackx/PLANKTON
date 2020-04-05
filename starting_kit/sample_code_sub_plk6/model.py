@@ -12,11 +12,13 @@ from os.path import isfile
 from sklearn.base import BaseEstimator
 from sklearn.tree import DecisionTreeClassifier
 import plkClassifier as plkc
-import preprocessing as prep
+import plkPreprocessing as prep
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.pipeline import Pipeline
+from sys import path
+from sys import argv
 
-class plkClassifier(BaseEstimator):
+class model(BaseEstimator):
 
 	"""
 	We are still working in this class, we are trying to find the best way to use it with plkAssitClassifier....
@@ -26,14 +28,14 @@ class plkClassifier(BaseEstimator):
 	def __init__(self ):
 		'''We replace this model by others model, should be used for usging best model parameters'''
 
-		#self.clf = StackingClassifier( estimators=[('rfc', RandomForestClassifier(n_estimators=116, max_depth=None, min_samples_split=2, random_state=1))], final_estimator=LogisticRegression() )
+		#self.clf = VotingClassifier( estimators=[('rfc', RandomForestClassifier(n_estimators=116, max_depth=None, min_samples_split=2, random_state=1))], final_estimator=LogisticRegression() )
 		
 		pipe_class = Pipeline([
 					('preprocessing', prep.Preprocessor() ),
-					('classification', RandomForestClassifier(n_estimators=116, max_depth=None, min_samples_split=2, random_state=1))
+					('classification', RandomForestClassifier(n_estimators=196, max_depth=None, min_samples_split=2, random_state=1))
 					])
 
-		self.clf =  RandomForestClassifier(n_estimators=116, max_depth=None, min_samples_split=2, random_state=1) 
+		#self.clf =  RandomForestClassifier(n_estimators=196, max_depth=None, min_samples_split=2, random_state=1) 
 		self.clf = pipe_class
 
 		self.xPLK = None
@@ -62,8 +64,8 @@ class plkClassifier(BaseEstimator):
 
 		#X1, y1 = self.prepo.outliersDeletion(X, y)
 		#X1 = self.prepo.fit_transform(X1, y1)
-
-		self.clf.fit(X, y)
+		x1,y1 = prep.Preprocessor.outliersDeletion(X,y)
+		self.clf.fit(x1, y1)
 
 	def predict(self, X):
 		''' This is called to make predictions on test data. Predicted classes are output.'''
@@ -85,8 +87,16 @@ class plkClassifier(BaseEstimator):
 		return self.clf.classes_
 
 	def save(self, path="./"):
-		pickle.dump(self, open(path + '_model.pickle', "w"))
+		file = open(path + '_model.pickle', "wb")
+		pickle.dump(self, file)
+		file.close()
+
 
 	def load(self, path="./"):
-		self = pickle.load(open(path + '_model.pickle'))
+		modelfile = path + '_model.pickle'
+		if isfile(modelfile):
+			with open(modelfile, 'rb') as f:
+				self = pickle.load(f)
+			print("Model reloaded from: " + modelfile)
+
 		return self
