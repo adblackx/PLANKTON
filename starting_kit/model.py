@@ -12,7 +12,7 @@ from os.path import isfile
 from sklearn.base import BaseEstimator
 from sklearn.tree import DecisionTreeClassifier
 import plkClassifier as plkc
-import preprocessing as prep
+import plkPreprocessing as prep
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.pipeline import Pipeline
 
@@ -62,8 +62,8 @@ class plkClassifier(BaseEstimator):
 
 		#X1, y1 = self.prepo.outliersDeletion(X, y)
 		#X1 = self.prepo.fit_transform(X1, y1)
-
-		self.clf.fit(X, y)
+		x1,y1 = prep.Preprocessor.outliersDeletion(X,y)
+		self.clf.fit(x1, y1)
 
 	def predict(self, X):
 		''' This is called to make predictions on test data. Predicted classes are output.'''
