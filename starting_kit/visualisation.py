@@ -254,7 +254,65 @@ def plot_performance(training_size, performance, settings, title, title_color, t
     plt.title(title, color=title_color, fontsize=title_size, fontweight=title_weight)
     plt.show()
 
-    """
+"""
+Model's performance function:
+This function is used to obtain the model's performance
+Source: https://scikit-learn.org/stable/auto_examples/model_selection/plot_learning_curve.html
+---------------------------------------------------------------
+Args
+    X: Training data array
+    y: Training label array
+    training_size: Array which contains the different values of the training set size
+    M: model
+    scoring_function: metric
+---------------------------------------------------------------
+"""
+
+def model_performance(X, y, training_size, M, scoring_function):
+    train_sizes, train_scores, test_scores = learning_curve(M, X, y, train_sizes = training_size,
+                                                        cv=5, scoring=make_scorer(scoring_function),shuffle=True)
+    scores = []
+    train_scores_mean = np.mean(train_scores, axis=1)
+    train_scores_error = np.std(train_scores, axis=1)
+    test_scores_mean = np.mean(test_scores, axis=1)
+    test_scores_error = np.std(test_scores, axis=1)
+    scores = [train_scores_mean, train_scores_error, test_scores_mean, test_scores_error]
+    return scores
+
+"""
+Plot performance function:
+This function is used to plot the model's performance with errors bars
+-----------------------------------------------------------------------
+Args
+    training_size: Array which contains the different values of the training set size, it has to be the same as
+                    you used for the function model_performance
+    performance: values of y axis, it correspond to the result of the function model_performance
+    settings: [curve_color, marker_type, marker_size, marker_color]
+    title: Title of the figure
+    title_color: Title's color
+    title_size: Title's size
+    title_weight: Normal or bold
+    train_test : 'train' or 'test', indicates for which set we want to plot the performance
+-----------------------------------------------------------------------
+"""
+
+def plot_performance(training_size, performance, settings, title, title_color, title_size, title_weight,
+                     train_test):
+    # Plot the model's performance with errors bars
+    if(train_test == 'train'):
+        plt.errorbar(training_size, performance[0], performance[1], color=settings[0], marker=settings[1],
+                 markersize=settings[2], MarkerFaceColor=settings[3], MarkerEdgeColor="Black")
+    elif(train_test == 'test'):
+        plt.errorbar(training_size, performance[2], performance[3], color=settings[0], marker=settings[1],
+                 markersize=settings[2], MarkerFaceColor=settings[3], MarkerEdgeColor="Black")
+    # We add the name of the axis
+    plt.xlabel("Training set size")
+    plt.ylabel("Performance (score)")
+    # We add the title and it's settings
+    plt.title(title, color=title_color, fontsize=title_size, fontweight=title_weight)
+    plt.show()
+    
+"""
 Performance's comparison function:
 This function is ony used in the compare_models_performance function
 ---------------------------------------------------------------
