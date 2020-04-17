@@ -1,6 +1,6 @@
 """
 Created on Sat Mar 27 2020
-Last revised: April 5, 2020
+Last revised: April 4, 2020
 @author: mouloua ramdane
 
 
@@ -8,25 +8,21 @@ Last revised: April 5, 2020
 
 
 import pickle
-import numpy as np   # We recommend to use numpy arrays
+import numpy as np   
 from os.path import isfile
 from sklearn.base import BaseEstimator
 from sklearn.tree import DecisionTreeClassifier
 import plkClassifier as plkc
 import model as plkm
-from sklearn import metrics
 
 import warnings
 
 with warnings.catch_warnings():
-	# Uncomment the next lines to auto-reload libraries (this causes some problem with pickles in Python 3)
-	import seaborn as sns; sns.set()
-	import warnings
-	warnings.simplefilter(action='ignore', category=FutureWarning)
+
 	import matplotlib.pyplot as plt
 	import pandas as pd
-	data_dir = 'public_data'          # The sample_data directory should contain only a very small subset of the data
-	data_name = 'plankton'
+
+	from libscores import get_metric
 	import numpy as np
 	import preprocessing as prep
 
@@ -47,10 +43,13 @@ with warnings.catch_warnings():
 
 	from sklearn.linear_model import LogisticRegression
 	from sklearn.model_selection import RandomizedSearchCV
-	from scipy.stats import uniform
+	from sklearn.ensemble import StackingClassifier
 	from sklearn.linear_model import LogisticRegression
 	from sklearn.base import BaseEstimator
 	from sklearn.datasets import load_wine
+	from sklearn.datasets import load_iris
+	from data_manager import DataManager
+
 
 def testplkClassifier(X, Y, model_name, model_list):
 	testAssist = plkc.plkAssitClassifier(model_name, model_list, X, Y)
@@ -58,14 +57,14 @@ def testplkClassifier(X, Y, model_name, model_list):
 	model_prefinal = testAssist.find_best_param_MODEL(best_model_name, best_model_list)
 	print("model_prefinal ", model_prefinal)
 
-	"""for i in range(len(model_prefinal)):
+	for i in range(len(model_prefinal)):
 		M = plkc.Classifier(X,Y)
 		M.process(X,Y, model_process = model_list[i] )
 		M.cross_validation_Classifier()
-		M.training_score_Classifier()"""
+		M.training_score_Classifier()
 
-	model_final = testAssist.voting(model_prefinal)
-	print("DEBUT VOTING ")
+	model_final = testAssist.stacking(model_prefinal)
+	print("DEBUT STACKING ")
 	M1 = plkc.Classifier(X,Y)
 	M1.process(X,Y, model_process = model_final )
 	M1.cross_validation_Classifier()
@@ -74,8 +73,8 @@ def testplkClassifier(X, Y, model_name, model_list):
 
 
 def testplkModel(X, Y):
-	scoring_function1 = getattr(metrics, "balanced_accuracy_score")
-	print(scoring_function1)
+	metric_name1, scoring_function1 = get_metric()
+
 	A = plkm.plkClassifier()
 	#A.fit(X_train, Y_train)
 	"""	M = plkc.Classifier(A.xPLK,A.yPLK)
@@ -93,18 +92,20 @@ if __name__=="__main__":
 	model_name = ["Nearest Neighbors", "Random Forest"]
 
 	model_list = [KNeighborsClassifier(1),  RandomForestClassifier(n_estimators=196, max_depth=None, min_samples_split=2, random_state=19, min_samples_leaf= 7)]
-	"""
-	#D = DataManager(data_name, data_dir) # We reload the data with the AutoML DataManager class because this is more convenient
+	
+	data_dir = 'public_data_raw_gaiasavers'          # POUR TRAVAILLER SUR RAW DATA
+	data_name = 'plankton'
+	D = DataManager(data_name, data_dir) 
 
 	X_train = D.data['X_train']
 	Y_train = D.data['Y_train'].ravel()
 
 	print(len(X_train[0]))
 	print(len(X_train))
-	print(len(Y_train))"""
+	print(len(Y_train))
 
-	model_nameS = ["ExtraTreesClassifier",  "RandomForestClassifier"]
-	model_listS = [ ExtraTreesClassifier() , RandomForestClassifier(n_estimators=116, max_depth=None, min_samples_split=2, random_state=1)]
+	'''model_nameS = ["ExtraTreesClassifier", "RandomForestClassifier"]
+	model_listS = [ ExtraTreesClassifier() ,RandomForestClassifier(n_estimators=116, max_depth=None, min_samples_split=2, random_state=1)]
 
 	#X_Random = np.random.rand(10752,203) #105752 lignes et 203 colonnes pour les images
 	#Y_Random = np.random.randint(7,size=10752) #105752 lignes et 203 colonnes pour les images
@@ -113,5 +114,5 @@ if __name__=="__main__":
 	Y_Random = Data.target
 
 
-	#testplkClassifier(X_Random, Y_Random, model_nameS, model_listS)
-	testplkModel(X_Random, Y_Random)
+	testplkClassifier(X_Random, Y_Random, model_nameS, model_listS)'''
+	#testplkModel(X_train, Y_train)
