@@ -162,8 +162,8 @@ if __name__=="__main__":
     print(D)
     X = D.data['X_train']
     Y = D.data['Y_train']
-    scaler = StandardScaler()
-    X = scaler.fit_transform(X)
+    #scaler = StandardScaler()
+    #X = scaler.fit_transform(X)
     #X = binariseImage(X)
     
     Xsauv = np.copy(X)
