@@ -10,8 +10,12 @@ Last update (April 4):
     - Creation of findBestPca
     - Creation of findBestkneighbors
 """
+model_dir = 'sample_code_submission/'                        # Change the model to a better one once you have one!
+result_dir = 'sample_result_submission/' 
+problem_dir = 'ingestion_program/'  
+score_dir = 'scoring_program/'
+from sys import path; path.append(model_dir); path.append(problem_dir); path.append(score_dir); 
 
-from sys import path 
 import pandas as pd
 import numpy as np
 from scipy import stats
@@ -21,24 +25,24 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 from sklearn.feature_selection import SelectKBest
 from sklearn.feature_selection import chi2
-from data_manager import DataManager
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.base import BaseEstimator
 from sklearn.tree import DecisionTreeClassifier
 import plkClassifier as plkc
-import modelPLK as plkm
+import model as plkm
 from libscores import get_metric
 from sklearn.metrics import make_scorer
 from sklearn.model_selection import cross_val_score
 from sklearn.pipeline import Pipeline
 from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
-
+from data_manager import DataManager
+from sklearn.preprocessing import StandardScaler
 
 class Preprocessor(BaseEstimator):
     '''n_components == nb_feat ==> no pca'''
     def __init__(self):
-        n_components = 19
-        nb_feat = 197
+        n_components = 18
+        nb_feat = 5261
         self.skb = SelectKBest(chi2, k = nb_feat)
         self.pca = PCA(n_components)
 
@@ -58,7 +62,7 @@ class Preprocessor(BaseEstimator):
         X_res = self.pca.transform(X_res)
         return X_res
     
-    def outliersDeletion(X, Y, nbNeighbors = 3):
+    def outliersDeletion(X, Y, nbNeighbors = 5):
         lof = LocalOutlierFactor(n_neighbors=nbNeighbors)
         decision = lof.fit_predict(X)
         return X[(decision==1)],Y[(decision==1)]
@@ -74,7 +78,7 @@ def max_indice(x):
 def findBestSkb(X, Y):
     score = []
     nb_features = []
-    for i in range(191,203,2):
+    for i in range(5260,5264,1):
         Xsauv = np.copy(X)
         Ysauv = np.copy(Y)
         clf = RandomForestClassifier(n_estimators=196, max_depth=None, min_samples_split=2, random_state=1)
@@ -89,10 +93,10 @@ def findBestSkb(X, Y):
     return nb_features[it]  
 
 
-def findBestPca(X, Y, nb_feat = 197):
+def findBestPca(X, Y, nb_feat = 5261):
     score = []
     nb_features = []
-    for i in range(1,20,2):
+    for i in range(16,22,1):
         Xsauv = np.copy(X)
         Ysauv = np.copy(Y)
         clf = RandomForestClassifier(n_estimators=196, max_depth=None, min_samples_split=2, random_state=1)
@@ -110,7 +114,7 @@ def findBestPca(X, Y, nb_feat = 197):
 def findBestKneighbors(X, Y):
     score = []
     nb_features = []
-    for i in range(1,10,2):
+    for i in range(4,7,1):
         Xsauv = np.copy(X)
         Ysauv = np.copy(Y)
         Xsauv, Ysauv = Preprocessor.outliersDeletion(Xsauv, Ysauv,nbNeighbors=i)
@@ -122,13 +126,20 @@ def findBestKneighbors(X, Y):
     it = max_indice(score)
     print(score)
     return nb_features[it]
-   
+ 
+
+def binariseImage(X):
+    X = X/255
+    return X.astype(int)
+
 if __name__=="__main__":
-    data_dir = 'public_data'
+    #data_dir = 'public_data'
+    data_dir = 'public_data_raw_gaiasavers'          # POUR TRAVAILLER SUR RAW DATA
     data_name = 'plankton'
     
-    Prepro = Preprocessor()
+    #Prepro = Preprocessor()
     
+    '''
     D = DataManager(data_name, data_dir) # Load data
     print("*** Original data ***")
     print(D)
@@ -143,19 +154,28 @@ if __name__=="__main__":
     print("*** Transformed data ***")
     print(D)
     
+    '''
+    
     D = DataManager(data_name, data_dir) # Load data
     D.data['X_train'], D.data['Y_train'] = Preprocessor.outliersDeletion(D.data['X_train'],D.data['Y_train'])
     print("***Outliers Deletion***")
     print(D)
     X = D.data['X_train']
     Y = D.data['Y_train']
+    scaler = StandardScaler()
+    X = scaler.fit_transform(X)
+    #X = binariseImage(X)
+    
     Xsauv = np.copy(X)
     Ysauv = np.copy(Y)
+    print("X shape : ", X.shape)
+    #X = X.astype(int)
+
+    print(X)
     
-    '''
     res = findBestKneighbors(X,Y)
     print("best nb features for otuliersDeletion  = ", res)
-    
+    res = 5
     prep = Preprocessor()
     X,Y = Preprocessor.outliersDeletion(X,Y, nbNeighbors=res)
     
@@ -168,7 +188,7 @@ if __name__=="__main__":
     print("best nb features for otuliersDeletion  = ", res)
     print("best nb features for skb  = ", res1)
     print("best nb features for pca  = ", res2)
-    '''
+    
     
     clf = RandomForestClassifier(n_estimators=196, max_depth=None, min_samples_split=2, random_state=1)
     prepro = Preprocessor()
