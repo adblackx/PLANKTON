@@ -12,10 +12,8 @@ problem and a better interpretation of the results
 Here is the link of our Jupyter Notebook:
 https://github.com/adblackx/PLANKTON/blob/master/starting_kit/README-Visualisation.ipynb
 
-Last update: 02/04/2020:
-    - adding comments
-    - deleting unnecessary variables & lines
-    - made the code more readable & clear
+Last update: 17/04/2020:
+    - adding new functions
 """
 model_dir = 'sample_code_submission/'
 result_dir = 'sample_result_submission/' 
@@ -54,6 +52,7 @@ with warnings.catch_warnings():
     from sklearn.metrics import make_scorer
     from sklearn.model_selection import cross_val_score
     from sklearn.model_selection import learning_curve
+    import matplotlib.gridspec as gridspec
 
 """
 K-means function:
@@ -255,6 +254,137 @@ def plot_performance(training_size, performance, settings, title, title_color, t
     plt.title(title, color=title_color, fontsize=title_size, fontweight=title_weight)
     plt.show()
 
+    """
+Performance's comparison function:
+This function is ony used in the compare_models_performance function
+---------------------------------------------------------------
+Args
+    X: Training data array
+    y: Training label array
+    training_size: Array which contains the different values of the training set size
+    model_tab: Array which contains the two models to compare
+    scoring_function: metric
+    n_times: How many times you want to run the learning_curve function
+---------------------------------------------------------------
+"""
+def performance_comparison(X, y, training_size, model_tab, scoring_function, n_times):
+    perf = []
+    for i in range(n_times):
+        perf.append([])
+    # Calculate the score
+    for k in range(len(model_tab)):
+        for i in range(n_times):
+            train_sizes, train_scores, test_scores = learning_curve(model_tab[k], X, y,
+                                                                    train_sizes = training_size,
+                                                        cv=5, scoring=make_scorer(scoring_function),shuffle=True)
+            train_scores_mean = np.mean(train_scores, axis=1)
+            test_scores_mean = np.mean(test_scores, axis=1)
+            perf[k].append(train_scores_mean)
+            perf[k].append(test_scores_mean)
+    return perf
+
+"""
+Compare models performance function:
+This function is used to compare the performance between two models
+---------------------------------------------------------------
+Args
+    model_1: First model
+    model_2: Second model
+    training_size: Array which contains the different values of the training set size
+    X: Training data array
+    y: Training label array
+    scoring_function: metric
+    n_times: How many times you want to run the learning_curve function
+---------------------------------------------------------------
+"""
+def compare_models_performance(model_1, model_2, training_size, X, y, scoring_function, n_times):
+    #Calculate the performance with error bar for each model for the train & test set
+    model_1_score = model_performance(X, y, training_size, model_1, scoring_function)
+    model_2_score = model_performance(X, y, training_size, model_2, scoring_function)
+    
+    #Calculate the perf n_times times for each model
+    model_tab = [model_1, model_2]
+    perf = performance_comparison(X, y, training_size, model_tab, scoring_function, n_times)
+    
+    #Calculate the score difference
+    score_diff_train = model_1_score[0] - model_2_score[0]
+    score_diff_test = model_1_score[2] - model_2_score[2]
+    score_diff_train = abs(score_diff_train)
+    score_diff_test = abs(score_diff_test)
+    res = [[model_1_score, model_2_score], perf, [score_diff_train, score_diff_test]]
+    return res
+
+"""
+Plot model comparizon function:
+This function is used to plot the figure representing the comparizon between two models's performance
+---------------------------------------------------------------
+Args
+    performance: Array which contains all the information needed to do the plot, we obtain it with the
+                compare_models_performance function
+    training_size: Array which contains the different values of the training set size
+    size: dimension of the figure (size*size)
+    firstModelName: Name of the first model
+    scdModelName : Name of the second model
+---------------------------------------------------------------
+"""
+def plot_model_comparison(performance, training_size, size, firstModelName, scdModelName):
+    fig = plt.figure(figsize = (size,size),tight_layout=True)
+    gs = gridspec.GridSpec(3, 2)
+    #n_times
+    ax = fig.add_subplot(gs[0, :])
+    j = 0
+    model_1_color = ['blue', 'cyan', 'yellow', 'gold']
+    model_2_color = ['blue', 'cyan', 'yellow', 'gold']
+    for i in range(int(len(performance[1][0])/2)):
+        if(i==0):
+            ax.plot(training_size,performance[1][0][j],linestyle=':',color='blue',label=firstModelName+'_train')
+            ax.plot(training_size,performance[1][0][j+1],linestyle='--',color='lime',label=firstModelName+'_test')
+            ax.plot(training_size,performance[1][1][j],linestyle=':',color='red',label=scdModelName+'_train')
+            ax.plot(training_size,performance[1][1][j+1],linestyle='--',color='gold',label=scdModelName+'_test')
+        else:
+            ax.plot(training_size,performance[1][0][j],linestyle=':',color='blue')
+            ax.plot(training_size,performance[1][0][j+1],linestyle='--',color='lime')
+            ax.plot(training_size,performance[1][1][j],linestyle=':',color='red')
+            ax.plot(training_size,performance[1][1][j+1],linestyle='--',color='gold')  
+        j = j+2
+    ax.legend()  
+    ax.set_title('Models\'s performances on the training set and test set according to the size of the training set',
+                fontsize=9)
+    ax.set_ylabel('Score')
+    ax.set_xlabel('Training set size')
+
+    #model_1
+    ax = fig.add_subplot(gs[1, 0])
+    ax.errorbar(training_size, performance[0][0][0], performance[0][0][1], color='blue', marker='o',
+                 markersize=4, MarkerFaceColor='lime', MarkerEdgeColor="Black",label='train')
+    ax.errorbar(training_size, performance[0][0][2], performance[0][0][3], color='lime', marker='o',
+                 markersize=4, MarkerFaceColor='blue', MarkerEdgeColor="Black",label='test')
+    ax.legend()
+    ax.set_title(firstModelName)
+    ax.set_ylabel('Score')
+    ax.set_xlabel('Training set size')
+    #model_2   
+    ax = fig.add_subplot(gs[1, 1])
+    ax.errorbar(training_size, performance[0][1][0], performance[0][1][1], color='Red', marker='o',
+                 markersize=4, MarkerFaceColor='gold', MarkerEdgeColor="Black",label='train')
+    ax.errorbar(training_size, performance[0][1][2], performance[0][1][3], color='gold', marker='o',
+                 markersize=4, MarkerFaceColor='red', MarkerEdgeColor="Black",label='test')
+    ax.legend(loc=4)
+    ax.set_title(scdModelName)
+    ax.set_ylabel('Score')
+    ax.set_xlabel('Training set size')
+    #Score_diff
+    ax = fig.add_subplot(gs[2, :])
+    ax.plot(training_size, performance[2][0], label='train',color='magenta', marker='p',MarkerFaceColor='orange',
+            MarkerEdgeColor='black')
+    ax.plot(training_size, performance[2][1], label='test', color='orange', marker='p',MarkerFaceColor='magenta',
+            MarkerEdgeColor='black')
+    ax.legend()
+    ax.set_title('Score difference between the two models for the training set and the test set',fontsize=9)
+    ax.set_ylabel('Score difference')
+    ax.set_xlabel('Training set size')
+    fig.align_labels()  
+    plt.show()
 
 """
 Main function
