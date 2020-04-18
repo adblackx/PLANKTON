@@ -5,7 +5,11 @@ Last revised: April 4, 2020
 
 
 """
-
+model_dir = 'sample_code_submission/'                        # Change the model to a better one once you have one!
+result_dir = 'sample_result_submission/' 
+problem_dir = 'ingestion_program/'  
+score_dir = 'scoring_program/'
+from sys import path; path.append(model_dir); path.append(problem_dir); path.append(score_dir); 
 
 import pickle
 import numpy as np   
@@ -13,12 +17,6 @@ from os.path import isfile
 from sklearn.base import BaseEstimator
 from sklearn.tree import DecisionTreeClassifier
 import plkClassifier as plkc
-
-model_dir = 'sample_code_submission/'                        # Change the model to a better one once you have one!
-result_dir = 'sample_result_submission/' 
-problem_dir = 'ingestion_program/'  
-score_dir = 'scoring_program/'
-from sys import path; path.append(model_dir); path.append(problem_dir); path.append(score_dir); 
 
 import warnings
 
@@ -109,9 +107,19 @@ if __name__=="__main__":
 	print(len(X_train))
 	print(len(Y_train))
 
+	preop = prep.Preprocessor()
+	
+	X_train1, Y_train1 = preop.outliersDeletion(X_train,Y_train)
+
+	X_train1 = Prepro.fit_transform(X_train1, Y_train1)
+
+	print(len(X_train1[0]))
+	print(len(X_train1))
+	print(len(Y_train1))
+
+	testplkClassifier(X_train1, Y_train1, model_name, model_list)
 
 
-	testAssist = plkc.plkAssitClassifier(model_name, model_list, X_train, Y_train)
 
 	'''model_nameS = ["ExtraTreesClassifier", "RandomForestClassifier"]
 	model_listS = [ ExtraTreesClassifier() ,RandomForestClassifier(n_estimators=116, max_depth=None, min_samples_split=2, random_state=1)]
