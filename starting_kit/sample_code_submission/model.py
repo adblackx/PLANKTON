@@ -1,8 +1,11 @@
 """
 Created on Sat Mar 27 2020
-Last revised: April 5, 2020
-@author: mouloua ramdane
+Last revised: April 18, 2020
+@author: Mouloua Ramdane
 
+Ajout du model, on utilise la classe findModel dans plkClassifier pour trouver notre modele
+on set notre cle a None, on trouve notre model quand on fit par rapport a nos données
+RAW DATA
 
 """
 

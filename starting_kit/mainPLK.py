@@ -1,9 +1,13 @@
 """
 Created on Sat Mar 27 2020
-Last revised: April 4, 2020
-@author: mouloua ramdane
+Last revised: April 18, 2020
+@author: Mouloua Ramdane
 
-
+Ajout de données Random, wine et iris pour les tests
+Ajout de tests
+testplkClassifier -> code avant la creation de finModel, deux code similaires
+testplkModel -> tests le preprocessing s'il fonctionne, pour voir la diff avec et sans
+RAW DATA
 """
 model_dir = 'sample_code_submission/'                        # Change the model to a better one once you have one!
 result_dir = 'sample_result_submission/' 

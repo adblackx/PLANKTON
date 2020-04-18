@@ -1,8 +1,12 @@
 """
 Created on Sat Mar 27 2020
-Last revised: April 5, 2020
-@author: mouloua ramdane
+Last revised: April 18, 2020
+@author: Mouloua Ramdane
 
+Correctifs de bugs
+Ajout de Voting a la place de stacking
+Ajout d'un seuil, qui n'est pas utilsié pour le moment
+RAW DATA
 
 """
 
