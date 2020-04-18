@@ -12,14 +12,15 @@ problem and a better interpretation of the results
 Here is the link of our Jupyter Notebook:
 https://github.com/adblackx/PLANKTON/blob/master/starting_kit/README-Visualisation.ipynb
 
-Last update: 17/04/2020:
-    - adding new functions
+Last update: 18/04/2020:
+    - modified a bit the kmeans function
 """
 model_dir = 'sample_code_submission/'
 result_dir = 'sample_result_submission/' 
 problem_dir = 'ingestion_program/'  
 score_dir = 'scoring_program/'
 data_dir = 'public_data'
+data_raw_dir = 'public_data_raw_gaiasavers'
 data_name = 'plankton'
 from sys import path; 
 path.append(model_dir); 
@@ -62,16 +63,18 @@ This function is used to visualize the clusters in our data using the k-means al
 Args
     X: Training data array
     y: Training label array
+    quality: Float, the lower it is the higher the quality is
     marker_settings = [marker_type, marker_size, marker_color]
     colors: color of the point for each different class
     title: title of the figure
     title_color: title's color
     title_size: title's size
     title_weight: normal or bold
+    point_size: size of the points
 ----------------------------------------------------------
 """
 
-def kmeans(X, y, marker_settings, colors, title, title_color, title_size, title_weight):
+def kmeans(X, y, quality, marker_settings, colors, title, title_color, title_size, title_weight, point_size):
     
     data = scale(X)
     # We recover the numbers of features and data (pictures of different plankton)
@@ -86,12 +89,12 @@ def kmeans(X, y, marker_settings, colors, title, title_color, title_size, title_
     
     # We initialize the k-means
     kmeans = KMeans(init='k-means++', n_clusters=n_classes, n_init=7)
-    
+
     # We train the k-means
     kmeans.fit(reduced_data)
-
+    
     # Step size of the mesh. Decrease to increase the quality of the VQ.
-    h = .02     # point in the mesh [x_min, x_max]x[y_min, y_max].
+    h = quality     # point in the mesh [x_min, x_max]x[y_min, y_max].
 
     # Plot the decision boundary. For that, we will assign a color to each
     np.random.seed(42)
@@ -111,7 +114,7 @@ def kmeans(X, y, marker_settings, colors, title, title_color, title_size, title_
     # Plot the points: the argument 'k.' is used to plot the points with a shape of 'point', and not square for example
     for i, color in zip(range(n_classes), colors):
         idx = np.where(y == i)
-        plt.plot(reduced_data[idx, 0], reduced_data[idx, 1], 'k.', markersize=2,color=color)
+        plt.plot(reduced_data[idx, 0], reduced_data[idx, 1], 'k.', markersize=point_size,color=color)
     # Plot the centroids
     centroids = kmeans.cluster_centers_
     plt.scatter(centroids[:, 0], centroids[:, 1], marker=marker_settings[0], s=marker_settings[1], linewidths=3, color=marker_settings[2], zorder=10)
@@ -391,8 +394,6 @@ def plot_model_comparison(performance, training_size, size, firstModelName, scdM
     #n_times
     ax = fig.add_subplot(gs[0, :])
     j = 0
-    model_1_color = ['blue', 'cyan', 'yellow', 'gold']
-    model_2_color = ['blue', 'cyan', 'yellow', 'gold']
     for i in range(int(len(performance[1][0])/2)):
         if(i==0):
             ax.plot(training_size,performance[1][0][j],linestyle=':',color='blue',label=firstModelName+'_train')
@@ -451,8 +452,13 @@ Main function
 if __name__=="__main__":
     # We load the data
     D = DataManager(data_name, data_dir, replace_missing=True)
+    D_raw = DataManager(data_name, data_raw_dir, replace_missing=True)
+    print(D_raw)
     X = D.data['X_train']
     y = D.data['Y_train']
+    X_raw = D_raw.data['X_train']
+    y_raw = D_raw.data['Y_train']
+    
     M = model(classifier=DecisionTreeClassifier(max_depth=10, max_features = 'sqrt',random_state=42))
     metric_name, scoring_function = get_metric()
     scores = cross_val_score(M, X, y, cv=5, scoring=make_scorer(scoring_function))
@@ -460,7 +466,9 @@ if __name__=="__main__":
     # K-means function
     settings = ['x', 150, 'w']
     kmeans(X, y, settings, "ymkrgbc",
-       'K-means clustering on the digits dataset (PCA-reduced data)', 'Red', 13, 'normal')
+       'K-means clustering on the digits dataset (PCA-reduced data)', 'Red', 13, 'normal', 2)
+    kmeans(X_raw, y_raw, settings, "ymkrgbc",
+       'K-means clustering on the digits dataset (PCA-reduced raw data)', 'Red', 13, 'normal', 5)
     
     # Decision surface function
     classes_names = ["chaetognatha","copepoda","euphasiids","fish_larvae","limacina","medusae","other"]
@@ -479,4 +487,3 @@ if __name__=="__main__":
     settings = ['Red', '8', 6, 'Blue']
     plot_performance(t, perf, settings, "Machine learning model's performance according to the size of the training set",
                  'Brown', 11, 'bold')
-    
