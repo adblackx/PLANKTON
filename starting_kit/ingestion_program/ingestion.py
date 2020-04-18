@@ -87,8 +87,8 @@ save_previous_results = False
 # Use default location for the input and output data:
 # If no arguments to run.py are provided, this is where the data will be found
 # and the results written to. Change the root_dir to your local directory.
-root_dir = "../"
-default_input_dir = root_dir + "sample_data"
+root_dir = "/home/ramdane/Bureau/PLANKTON/starting_kit/"
+default_input_dir = root_dir + "public_data_raw_gaiasavers"
 default_output_dir = root_dir + "sample_result_submission"
 default_program_dir = root_dir + "ingestion_program"
 default_submission_dir = root_dir + "sample_code_submission"
@@ -198,6 +198,7 @@ if __name__=="__main__" and debug_mode<4:
         # ========= Creating a model 
         vprint( verbose,  "======== Creating model ==========")
         M = model()
+        print(M)
         
         # ========= Reload trained model if it exists
         vprint( verbose,  "**********************************************************")
@@ -205,6 +206,7 @@ if __name__=="__main__" and debug_mode<4:
         vprint( verbose,  "**********************************************************")
         you_must_train=1
         modelname = os.path.join(submission_dir,basename)
+        print("os.path",submission_dir,basename, modelname)
         if os.path.isfile(modelname + '_model.pickle'):
             M = M.load(modelname)
             you_must_train=0

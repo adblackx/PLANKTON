@@ -103,6 +103,7 @@ if __name__=="__main__":
 	print(len(X_train[0]))
 	print(len(X_train))
 	print(len(Y_train))
+	testAssist = plkc.plkAssitClassifier(model_name, model_list, X, Y)
 
 	'''model_nameS = ["ExtraTreesClassifier", "RandomForestClassifier"]
 	model_listS = [ ExtraTreesClassifier() ,RandomForestClassifier(n_estimators=116, max_depth=None, min_samples_split=2, random_state=1)]
