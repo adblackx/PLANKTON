@@ -13,7 +13,12 @@ from os.path import isfile
 from sklearn.base import BaseEstimator
 from sklearn.tree import DecisionTreeClassifier
 import plkClassifier as plkc
-import model as plkm
+
+model_dir = 'sample_code_submission/'                        # Change the model to a better one once you have one!
+result_dir = 'sample_result_submission/' 
+problem_dir = 'ingestion_program/'  
+score_dir = 'scoring_program/'
+from sys import path; path.append(model_dir); path.append(problem_dir); path.append(score_dir); 
 
 import warnings
 
@@ -103,7 +108,10 @@ if __name__=="__main__":
 	print(len(X_train[0]))
 	print(len(X_train))
 	print(len(Y_train))
-	testAssist = plkc.plkAssitClassifier(model_name, model_list, X, Y)
+
+
+
+	testAssist = plkc.plkAssitClassifier(model_name, model_list, X_train, Y_train)
 
 	'''model_nameS = ["ExtraTreesClassifier", "RandomForestClassifier"]
 	model_listS = [ ExtraTreesClassifier() ,RandomForestClassifier(n_estimators=116, max_depth=None, min_samples_split=2, random_state=1)]
