@@ -287,6 +287,7 @@ class plkAssitClassifier:
 					print(search.best_params_[v])
 				res.append(m)
 				#print(search.cv_results_)
+			#print("res",res)
 			return res
 
 	def voting(self, model_list):

@@ -58,20 +58,22 @@ def testplkClassifier(X, Y, model_name, model_list):
 	testAssist = plkc.plkAssitClassifier(model_name, model_list, X, Y)
 	best_model_name, best_model_list = testAssist.compareModel()
 	model_prefinal = testAssist.find_best_param_MODEL(best_model_name, best_model_list)
-	print("model_prefinal ", model_prefinal)
+	#print("model_prefinal ", model_prefinal)
 
-	for i in range(len(model_prefinal)):
+	"""for i in range(len(model_prefinal)):
 		M = plkc.Classifier(X,Y)
 		M.process(X,Y, model_process = model_list[i] )
 		M.cross_validation_Classifier()
-		M.training_score_Classifier()
+		M.training_score_Classifier()"""
 
-	model_final = testAssist.stacking(model_prefinal)
-	print("DEBUT STACKING ")
+	model_final = testAssist.voting(model_prefinal)
+	print("DEBUT VOTING ")
 	M1 = plkc.Classifier(X,Y)
+	#print("model_final",model_final)
 	M1.process(X,Y, model_process = model_final )
-	M1.cross_validation_Classifier()
-	M1.training_score_Classifier()
+	A = M1.cross_validation_Classifier()
+	print("CV VOTING: ", A.mean())
+	print("metric VOTING: ", M1.training_score_Classifier() )
 
 
 
@@ -108,22 +110,26 @@ if __name__=="__main__":
 	print(len(Y_train))
 
 	preop = prep.Preprocessor()
-	
-	X_train1, Y_train1 = preop.outliersDeletion(X_train,Y_train)
 
-	X_train1 = Prepro.fit_transform(X_train1, Y_train1)
+	X_train1, Y_train1 = prep.Preprocessor.outliersDeletion(X_train,Y_train)
+
+	X_train1 = preop.fit_transform(X_train1, Y_train1)
 
 	print(len(X_train1[0]))
 	print(len(X_train1))
 	print(len(Y_train1))
 
-	testplkClassifier(X_train1, Y_train1, model_name, model_list)
 
 
 
-	'''model_nameS = ["ExtraTreesClassifier", "RandomForestClassifier"]
+	model_nameS = ["ExtraTreesClassifier", "RandomForestClassifier"]
 	model_listS = [ ExtraTreesClassifier() ,RandomForestClassifier(n_estimators=116, max_depth=None, min_samples_split=2, random_state=1)]
 
+	#testplkClassifier(X_train1, Y_train1, model_nameS, model_listS)
+	a = plkc.findModel()
+	m = a.getModel(X_train1, Y_train1)
+	print(m)
+'''
 	#X_Random = np.random.rand(10752,203) #105752 lignes et 203 colonnes pour les images
 	#Y_Random = np.random.randint(7,size=10752) #105752 lignes et 203 colonnes pour les images
 	Data = load_wine()

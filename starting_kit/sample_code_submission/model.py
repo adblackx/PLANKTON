@@ -30,10 +30,7 @@ class model(BaseEstimator):
 
 		#self.clf = VotingClassifier( estimators=[('rfc', RandomForestClassifier(n_estimators=116, max_depth=None, min_samples_split=2, random_state=1))], final_estimator=LogisticRegression() )
 		
-		pipe_class = Pipeline([
-					('preprocessing', prep.Preprocessor() ),
-					('classification', RandomForestClassifier(n_estimators=196, max_depth=None, min_samples_split=2, random_state=1))
-					])
+		pipe_class = None
 
 		#self.clf =  RandomForestClassifier(n_estimators=196, max_depth=None, min_samples_split=2, random_state=1) 
 		self.clf = pipe_class
@@ -65,6 +62,9 @@ class model(BaseEstimator):
 		#X1, y1 = self.prepo.outliersDeletion(X, y)
 		#X1 = self.prepo.fit_transform(X1, y1)
 		x1,y1 = prep.Preprocessor.outliersDeletion(X,y)
+		a = plkc.findModel()
+		m = a.getModel(X, y)
+		self.clf = m
 		self.clf.fit(x1, y1)
 
 	def predict(self, X):
