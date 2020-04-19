@@ -47,9 +47,10 @@ with warnings.catch_warnings():
 	from sklearn.linear_model import LogisticRegression
 	from sklearn.model_selection import RandomizedSearchCV
 	from sklearn.ensemble import VotingClassifier
+	#from sklearn.ensemble import StackingClassifier
 	from sklearn.linear_model import LogisticRegression
 	from sklearn import metrics
-
+	from sklearn.model_selection import GridSearchCV
 
 
 class Classifier:
@@ -80,6 +81,7 @@ class Classifier:
 		scoring_function1 = getattr(metrics, "balanced_accuracy_score")
 		res = cross_val_score(self.M, self.x, self.y, cv=5 , scoring = make_scorer(scoring_function1))
 		print("cross_validation_Classifier:  ", res)
+		print("cross_validation_Classifier (moyenne)  ", res.mean())
 		return res
 
 	def training_score_Classifier(self):
@@ -221,7 +223,8 @@ class plkAssitClassifier:
 	    print("best_param_MODEL: ")
 	    scoring_function = getattr(metrics, "balanced_accuracy_score")
 
-	    clf = RandomizedSearchCV(logistic, distributions, random_state=0, scoring=make_scorer(scoring_function) )
+	    #clf = RandomizedSearchCV(logistic, distributions, random_state=0, scoring=make_scorer(scoring_function) )
+	    clf = GridSearchCV(logistic, distributions, scoring=make_scorer(scoring_function) )
 	    search = clf.fit(self.x, self.y)
 	    print(search.best_params_)
 	    return search
@@ -280,19 +283,27 @@ class plkAssitClassifier:
 				#distributions = dict( n_estimators=np.arange(150,200) , min_samples_split=[2],random_state=[0,1,2] )
 				if model_name[i] == "ExtraTreesClassifier" or model_name[i] == "RandomForestClassifier" :
 					print(model_name[i])
-					distributions = dict( n_estimators=np.arange(1,2) , min_samples_split=[2],random_state=[2] )
+					distributions = dict( n_estimators=np.arange(190,200) , min_samples_split=[2], random_state=[2] )
 				else :
 					print("pas encore pris en compte.... il n'y a que deux modeles interessant pour le moment")
 				search = self.best_param_MODEL(logistic, distributions)
 				#print(search.best_params_)
 				m = model_list[i]
 				for v in search.best_params_:
-					m.v = search.best_params_[v]
-					print(search.best_params_[v])
+					#print(type(v))
+					t = m.__dict__[v]
+					#print("change av ",m.__dict__[v] , t)
+					m.__dict__[v] = search.best_params_[v]
+					#print(search.best_params_[v])
+					t = m.__dict__[v]
+					#print("change ap ",m.__dict__[v] , t)
+
 				res.append(m)
 				#print(search.cv_results_)
-			#print("res",res)
+			print("res deconne",res)
 			return res
+
+
 
 	def voting(self, model_list):
 		"""
@@ -308,7 +319,7 @@ class plkAssitClassifier:
 			st = 'rf' + str(i)
 			model_listS.append( (st, model_list[i] ))
 
-
+		#print("model_listS",model_listS)
 
 		print("voting: runs methode")
 
@@ -323,7 +334,7 @@ class findModel:
 
 	def __init__(self):
 		self.model_name = ["ExtraTreesClassifier", "RandomForestClassifier"]
-		self.model_list = [ ExtraTreesClassifier() ,RandomForestClassifier(n_estimators=116, max_depth=None, min_samples_split=2, random_state=1)]
+		self.model_list = [ ExtraTreesClassifier(n_estimators=1) ,RandomForestClassifier(n_estimators=1, max_depth=None, min_samples_split=2, random_state=1)]
 
 	def getModel(self,X,Y):
 		testAssist = plkAssitClassifier(self.model_name, self.model_list, X, Y)
@@ -341,7 +352,10 @@ class findModel:
 		M1 = Classifier(X,Y)
 		M1.process(X,Y, model_process = model_final )
 		M1.cross_validation_Classifier()
-		M1.training_score_Classifier()"""
+		M1.training_score_Classifier()
+		A = M1.cross_validation_Classifier()
+		print("CV VOTING: ", A.mean())
+		print("metric VOTING: ", M1.training_score_Classifier() )"""
 
 		return model_final
 

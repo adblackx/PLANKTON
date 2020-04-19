@@ -56,6 +56,7 @@ with warnings.catch_warnings():
 	from sklearn.datasets import load_wine
 	from sklearn.datasets import load_iris
 	from data_manager import DataManager
+	from model import model
 
 
 def testplkClassifier(X, Y, model_name, model_list):
@@ -130,9 +131,23 @@ if __name__=="__main__":
 	model_listS = [ ExtraTreesClassifier() ,RandomForestClassifier(n_estimators=116, max_depth=None, min_samples_split=2, random_state=1)]
 
 	#testplkClassifier(X_train1, Y_train1, model_nameS, model_listS)
-	a = plkc.findModel()
+	
+	"""a = plkc.findModel() # TEST 1
 	m = a.getModel(X_train1, Y_train1)
-	print(m)
+	print(model retourné,m)"""
+	
+	#TEST2
+	m = model()
+	M1 = plkc.Classifier(X_train,Y_train)
+	print("DEBUT MODEL FIN")
+	M1.process(X_train,Y_train, model_process = m )
+	M1.cross_validation_Classifier()
+	M1.training_score_Classifier()
+	A = M1.cross_validation_Classifier()
+	print("CV FIN: ", A.mean())
+	print("metric FIN: ", M1.training_score_Classifier() )
+
+
 '''
 	#X_Random = np.random.rand(10752,203) #105752 lignes et 203 colonnes pour les images
 	#Y_Random = np.random.randint(7,size=10752) #105752 lignes et 203 colonnes pour les images

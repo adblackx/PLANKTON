@@ -43,7 +43,7 @@ class model(BaseEstimator):
 		self.num_train_samples = 0
 		self.num_feat=1
 		self.num_labels=1
-		#self.prepo = prep.Preprocessor()
+		self.prepo = prep.Preprocessor()
 
 
 
@@ -67,7 +67,12 @@ class model(BaseEstimator):
 		x1,y1 = prep.Preprocessor.outliersDeletion(X,y)
 		a = plkc.findModel()
 		m = a.getModel(X, y)
-		self.clf = m
+		pipe_class = Pipeline([
+					('preprocessing', self.prepo ),
+					('voting', m)
+					])		
+		self.clf = pipe_class
+
 		self.clf.fit(x1, y1)
 
 	def predict(self, X):

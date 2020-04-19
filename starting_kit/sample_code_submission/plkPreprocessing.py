@@ -10,11 +10,6 @@ Last update (April 4):
     - Creation of findBestPca
     - Creation of findBestkneighbors
 """
-model_dir = 'sample_code_submission/'                        # Change the model to a better one once you have one!
-result_dir = 'sample_result_submission/' 
-problem_dir = 'ingestion_program/'  
-score_dir = 'scoring_program/'
-from sys import path; path.append(model_dir); path.append(problem_dir); path.append(score_dir); 
 
 import numpy as np
 from sklearn.neighbors import LocalOutlierFactor
