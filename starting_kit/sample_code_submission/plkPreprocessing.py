@@ -16,48 +16,51 @@ problem_dir = 'ingestion_program/'
 score_dir = 'scoring_program/'
 from sys import path; path.append(model_dir); path.append(problem_dir); path.append(score_dir); 
 
-import pandas as pd
 import numpy as np
-from scipy import stats
 from sklearn.neighbors import LocalOutlierFactor
-from sklearn import preprocessing
 from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import MinMaxScaler
+
 from sklearn.decomposition import PCA
 from sklearn.feature_selection import SelectKBest
 from sklearn.feature_selection import chi2
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.base import BaseEstimator
-from sklearn.tree import DecisionTreeClassifier
-import plkClassifier as plkc
-import model as plkm
 from sklearn.metrics import make_scorer
 from sklearn.model_selection import cross_val_score
 from sklearn.pipeline import Pipeline
-from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
-from data_manager import DataManager
-from sklearn.preprocessing import StandardScaler
+from sklearn.ensemble import RandomForestClassifier
+from sklearn import metrics
 
 class Preprocessor(BaseEstimator):
     '''n_components == nb_feat ==> no pca'''
     def __init__(self):
-        n_components = 18
-        nb_feat = 5261
+        n_components = 22
+        nb_feat = 6000
         self.skb = SelectKBest(chi2, k = nb_feat)
         self.pca = PCA(n_components)
+        self.scaler = StandardScaler()
 
     def fit(self, X, Y):
-        self.skb = self.skb.fit(X,Y)
+        X_temp = createNewFeatures(X)
+        self.skb = self.skb.fit(X_temp,Y)
         X_temp = self.skb.transform(X) #car si non pca n'aura pas les bonnes dimensions
+        self.scaler = self.scaler.fit(X_temp)
+        X_temp = self.scaler.transform(X_temp)
         self.pca = self.pca.fit(X_temp)
         return self
 
     def fit_transform(self, X, Y):
-        X_res = self.skb.fit_transform(X,Y)
+        X_res = createNewFeatures(X)
+        X_res = self.skb.fit_transform(X_res,Y)
+        X_res = self.scaler.fit_transform(X_res)
         X_res = self.pca.fit_transform(X_res)
         return X_res
 
     def transform(self, X):
-        X_res = self.skb.transform(X)
+        X_res = createNewFeatures(X)
+        X_res = self.skb.transform(X_res)
+        X_res = self.scaler.transform(X_res)
         X_res = self.pca.transform(X_res)
         return X_res
     
@@ -77,7 +80,7 @@ def max_indice(x):
 def findBestSkb(X, Y):
     score = []
     nb_features = []
-    for i in range(5260,5264,1):
+    for i in range(5998,6002,1): #5260,5264,1
         Xsauv = np.copy(X)
         Ysauv = np.copy(Y)
         clf = RandomForestClassifier(n_estimators=196, max_depth=None, min_samples_split=2, random_state=1)
@@ -92,10 +95,10 @@ def findBestSkb(X, Y):
     return nb_features[it]  
 
 
-def findBestPca(X, Y, nb_feat = 5261):
+def findBestPca(X, Y, nb_feat = 6000):
     score = []
     nb_features = []
-    for i in range(16,22,1):
+    for i in range(21,24,1):
         Xsauv = np.copy(X)
         Ysauv = np.copy(Y)
         clf = RandomForestClassifier(n_estimators=196, max_depth=None, min_samples_split=2, random_state=1)
@@ -128,74 +131,14 @@ def findBestKneighbors(X, Y):
  
 
 def binariseImage(X):
-    X = X/255
+    X = X/128
     return X.astype(int)
 
-if __name__=="__main__":
-    #data_dir = 'public_data'
-    data_dir = 'public_data_raw_gaiasavers'          # POUR TRAVAILLER SUR RAW DATA
-    data_name = 'plankton'
-    
-    #Prepro = Preprocessor()
-    
-    '''
-    D = DataManager(data_name, data_dir) # Load data
-    print("*** Original data ***")
-    print(D)
-    
-    #Prepro.fit(D.data['X_train'], D.data['Y_train'])
-    #D.data['X_train'] = Prepro.transform(D.data['X_train'])
-    D.data['X_train'] = Prepro.fit_transform(D.data['X_train'], D.data['Y_train'])
-    D.data['X_valid'] = Prepro.transform(D.data['X_valid'])
-    D.data['X_test'] = Prepro.transform(D.data['X_test'])
-    D.feat_name = np.array(['PC1', 'PC2'])
-    D.feat_type = np.array(['Numeric', 'Numeric'])
-    print("*** Transformed data ***")
-    print(D)
-    
-    '''
-    
-    D = DataManager(data_name, data_dir) # Load data
-    D.data['X_train'], D.data['Y_train'] = Preprocessor.outliersDeletion(D.data['X_train'],D.data['Y_train'])
-    print("***Outliers Deletion***")
-    print(D)
-    X = D.data['X_train']
-    Y = D.data['Y_train']
-    #scaler = StandardScaler()
-    #X = scaler.fit_transform(X)
-    #X = binariseImage(X)
-    
-    Xsauv = np.copy(X)
-    Ysauv = np.copy(Y)
-    print("X shape : ", X.shape)
-    #X = X.astype(int)
-
-    print(X)
-    
-    res = findBestKneighbors(X,Y)
-    print("best nb features for otuliersDeletion  = ", res)
-    res = 5
-    prep = Preprocessor()
-    X,Y = Preprocessor.outliersDeletion(X,Y, nbNeighbors=res)
-    
-    res1 = findBestSkb(X, Y)
-    print("best nb features for skb  = ", res1)
-    
-    res2 = findBestPca(X, Y, nb_feat=res1)
-    print("best nb features for pca  = ", res2)
-    
-    print("best nb features for otuliersDeletion  = ", res)
-    print("best nb features for skb  = ", res1)
-    print("best nb features for pca  = ", res2)
-    
-    
-    clf = RandomForestClassifier(n_estimators=196, max_depth=None, min_samples_split=2, random_state=1)
-    prepro = Preprocessor()
-    pipe = Pipeline([('prepro', prepro), ('clf', clf)])
-    metric_name1, scoring_function1 = get_metric()
-    res = cross_val_score(pipe, Xsauv, Ysauv, cv=2 , scoring = make_scorer(scoring_function1))
-    print(res)
-    
+def createNewFeatures(X):
+    X = np.c_[X,X.mean(axis=1)]
+    X = np.c_[X,X.std(axis=1)]
+    X = np.c_[X,X.var(axis=1)]
+    return X
     
     
 
