@@ -64,7 +64,6 @@ print(D)
 '''
 
 D = DataManager(data_name, data_dir) # Load data
-D.data['X_train'], D.data['Y_train'] = Preprocessor.outliersDeletion(D.data['X_train'],D.data['Y_train'])
 print("***Outliers Deletion***")
 print(D)
 X = D.data['X_train']
@@ -81,16 +80,23 @@ print(X)
 print(X.shape)
 Xsauv = np.copy(X)
 Ysauv = np.copy(Y)
+
 '''
 res = plkp.findBestKneighbors(X,Y)
 print("best nb features for otuliersDeletion  = ", res)
-res = 5
+#res = 146
+
+
 prep = Preprocessor()
 X,Y = Preprocessor.outliersDeletion(X,Y, nbNeighbors=res)
 print("X shape after outliers deletion: ", X.shape)
 
+
 res1 = plkp.findBestSkb(X, Y)
 print("best nb features for skb  = ", res1)
+
+#res1 = 3970
+
 
 res2 = plkp.findBestPca(X, Y, nb_feat=res1)
 print("best nb features for pca  = ", res2)
@@ -98,15 +104,16 @@ print("best nb features for pca  = ", res2)
 print("best nb features for otuliersDeletion  = ", res)
 print("best nb features for skb  = ", res1)
 print("best nb features for pca  = ", res2)
+
 '''
 
 clf = RandomForestClassifier(n_estimators=196, max_depth=None, min_samples_split=2, random_state=1)
 prepro = Preprocessor()
 pipe = Pipeline([('prepro', prepro), ('clf', clf)])
 metric_name1, scoring_function1 = get_metric()
-res = cross_val_score(pipe, Xsauv, Ysauv, cv=2 , scoring = make_scorer(scoring_function1))
+res = cross_val_score(pipe, Xsauv, Ysauv, cv=10, scoring = make_scorer(scoring_function1))
 print(res)
 
 temp = prepro.fit_transform(X,Y)
 print("temp shape :", temp.shape)
-print(temp)
+print(temp) 

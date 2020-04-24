@@ -17,9 +17,10 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.preprocessing import MinMaxScaler
 
 from sklearn.decomposition import PCA
+from sklearn.decomposition import IncrementalPCA #better than pca
+from sklearn.decomposition import KernelPCA #better than the two above
 from sklearn.feature_selection import SelectKBest
 from sklearn.feature_selection import chi2
-from sklearn.preprocessing import MinMaxScaler
 from sklearn.base import BaseEstimator
 from sklearn.metrics import make_scorer
 from sklearn.model_selection import cross_val_score
@@ -30,10 +31,10 @@ from sklearn import metrics
 class Preprocessor(BaseEstimator):
     '''n_components == nb_feat ==> no pca'''
     def __init__(self):
-        n_components = 22
-        nb_feat = 6000
+        n_components = 22 #22 for PCA 
+        nb_feat = 3970
         self.skb = SelectKBest(chi2, k = nb_feat)
-        self.pca = PCA(n_components)
+        self.pca = KernelPCA(n_components)
         self.scaler = StandardScaler()
 
     def fit(self, X, Y):
@@ -59,10 +60,13 @@ class Preprocessor(BaseEstimator):
         X_res = self.pca.transform(X_res)
         return X_res
     
-    def outliersDeletion(X, Y, nbNeighbors = 5):
-        lof = LocalOutlierFactor(n_neighbors=nbNeighbors)
+    def outliersDeletion(X, Y, nbNeighbors = 146):
+        sizeb = X.shape[0]
+        lof = LocalOutlierFactor(n_neighbors=nbNeighbors, metric = 'correlation')
         decision = lof.fit_predict(X)
-        return X[(decision==1)],Y[(decision==1)]
+        Xres, Yres = X[(decision==1)],Y[(decision==1)]
+        print("nb deletion : ", sizeb - Xres.shape[0])
+        return Xres, Yres
 
 def max_indice(x):
         maxIndice = 0
@@ -75,7 +79,7 @@ def max_indice(x):
 def findBestSkb(X, Y):
     score = []
     nb_features = []
-    for i in range(5998,6002,1): #5260,5264,1
+    for i in range(3969,3971,1): #5998,6002,1
         Xsauv = np.copy(X)
         Ysauv = np.copy(Y)
         clf = RandomForestClassifier(n_estimators=196, max_depth=None, min_samples_split=2, random_state=1)
@@ -90,15 +94,16 @@ def findBestSkb(X, Y):
     return nb_features[it]  
 
 
-def findBestPca(X, Y, nb_feat = 6000):
+def findBestPca(X, Y, nb_feat = 3970):
     score = []
     nb_features = []
-    for i in range(21,24,1):
+    #for i in range(21,24,1):
+    for i in range(20,30,1):
         Xsauv = np.copy(X)
         Ysauv = np.copy(Y)
         clf = RandomForestClassifier(n_estimators=196, max_depth=None, min_samples_split=2, random_state=1)
         skb = SelectKBest(chi2, k= nb_feat)
-        pipe = Pipeline([('skb', skb), ('pca', PCA(i)), ('clf', clf)])
+        pipe = Pipeline([('skb', skb), ('std', StandardScaler()), ('pca', KernelPCA(i)), ('clf', clf)])
         scoring_function1 = getattr(metrics, "balanced_accuracy_score")
         res = cross_val_score(pipe, Xsauv, Ysauv, cv=2 , scoring = make_scorer(scoring_function1))
         score.append(np.mean(res))
@@ -111,7 +116,8 @@ def findBestPca(X, Y, nb_feat = 6000):
 def findBestKneighbors(X, Y):
     score = []
     nb_features = []
-    for i in range(4,7,1):
+    #for i in range(4,7,1):
+    for i in range(141,156,1):
         Xsauv = np.copy(X)
         Ysauv = np.copy(Y)
         Xsauv, Ysauv = Preprocessor.outliersDeletion(Xsauv, Ysauv,nbNeighbors=i)
