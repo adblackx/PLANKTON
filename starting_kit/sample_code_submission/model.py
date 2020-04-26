@@ -71,10 +71,11 @@ class model(BaseEstimator):
 		#X1 = self.prepo.fit_transform(X1, y1)
 		
 		if not self.isFitted :
-			x1,y1 = prep.Preprocessor.outliersDeletion(X,y)
+			#x1,y1 = prep.Preprocessor.outliersDeletion(X,y)
+			#x1 = prep.Preprocessor().fit_transform(x1,y1)
+			x1, y1 = X,y
 			a = plkc.findModel()
-			m = a.getModel(X, y)
-
+			m = a.getModel(x1, y1)
 			'''clf1 = ExtraTreesClassifier(n_estimators=196, random_state=2)
 			clf2 = RandomForestClassifier(n_estimators=196, random_state=2)
 			clf3 = DecisionTreeClassifier(max_depth=10, max_features = 'sqrt',random_state=42)
@@ -90,13 +91,14 @@ class model(BaseEstimator):
 			self.clf.fit(x1, y1)
 			self.save()
 			self.isFitted = True
+
 		else:
+			print("MODEL ON CHARGE: ")
 			self.clf = self.load()
 			
 
 	def predict(self, X):
 		''' This is called to make predictions on test data. Predicted classes are output.'''
-
 		if X.ndim>1: 
 			num_feat = X.shape[1]
 		if (self.num_feat != num_feat):

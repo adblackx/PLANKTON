@@ -13,7 +13,8 @@ RAW DATA
 other_files = 'other_files/'
 
 from sys import path; 
-path.append(other_files); 
+path.append(other_files);
+
 
 
 
@@ -189,7 +190,7 @@ class plkAssitClassifier:
 
 		for i in range(len(res1)):
 		    #if res2[i] > seuil and res3[i]> seuil:
-		    if model_nameF[i] == "ExtraTreesClassifier" or model_nameF[i] == "RandomForestClassifier" :
+		    if model_nameF[i] == "ExtraTreesClassifier" or model_nameF[i] == "RandomForestClassifier" or model_nameF[i] == "DecisionTreeClassifier" :
 		        self.best_model_namePLK.append(model_nameF[i])
 		        self.best_model_listPLK.append(model_listF[i])
 
@@ -272,21 +273,12 @@ class plkAssitClassifier:
 
 				print("find_best_param_MODEL: runs methode", model_list[i])
 				logistic = model_list[i]
-
-
-				# first tests
-				#distributions = dict( n_estimators=np.arange(0,200) , min_samples_split=[0,1,2],random_state=np.arange(0,20,1), min_samples_leaf=np.arange(0,20,1) )
-				#{'random_state': 19, 'n_estimators': 196, 'min_samples_split': 2, 'min_samples_leaf': 7} 
-				# bad results
-
-				#distributions = dict( n_estimators=np.arange(10,200) , min_samples_split=[2],random_state=[0,1,2] )
-				#distributions = dict( n_estimators=np.arange(150,200) , min_samples_split=[2],random_state=[0,1,2] )
 				if model_name[i] == "ExtraTreesClassifier" or model_name[i] == "RandomForestClassifier" :
-					print(model_name[i])
-					distributions = dict( n_estimators=np.arange(2,3) , min_samples_split=[2], random_state=[2] )
+					#print(model_name[i])	np.arange(90,130)
+					distributions = dict( n_estimators=[98,125] , min_samples_split=[2], random_state=[2] )
 				elif model_name[i] == "DecisionTreeClassifier" :
-					print(model_name[i])
-					distributions = dict( max_depth=np.arange(10,20) , max_features=['sqrt','log2'], random_state=[42] )
+					#print(model_name[i])
+					distributions = dict( max_depth=[13] , max_features=['sqrt'], random_state=[42] )
 				else:
 					print("pas encore pris en compte.... il n'y a que deux modeles interessant pour le moment")
 				search = self.best_param_MODEL(logistic, distributions)
@@ -303,7 +295,7 @@ class plkAssitClassifier:
 
 				res.append(m)
 				#print(search.cv_results_)
-			print("res deconne",res)
+			#print("res deconne",res)
 			return res
 
 
@@ -324,7 +316,7 @@ class plkAssitClassifier:
 
 		#print("model_listS",model_listS)
 
-		print("voting: runs methode")
+		print("voting: Runs methode")
 
 		#clf = StackingClassifier(estimators=model_listS, final_estimator=LogisticRegression())
 		clf = VotingClassifier(estimators=model_listS, voting='soft')
@@ -336,33 +328,46 @@ class plkAssitClassifier:
 class findModel:
 
 	def __init__(self):
-		self.model_name = ["ExtraTreesClassifier", "RandomForestClassifier"]
-		self.model_list = [ ExtraTreesClassifier(n_estimators=1) ,RandomForestClassifier(n_estimators=1, max_depth=None, min_samples_split=2, random_state=1)]
+		'''self.model_name = ["ExtraTreesClassifier", 
+							"RandomForestClassifier",
+							"DecisionTreeClassifier"]
+		self.model_list = [ ExtraTreesClassifier(n_estimators=130) ,
+							RandomForestClassifier(n_estimators=98, max_depth=None, min_samples_split=2, random_state=1),
+							DecisionTreeClassifier(max_depth=13, max_features = 'sqrt',random_state=42)]
+		'''
 		#self.model_name = ["DecisionTreeClassifier",] 
 		#self.model_list = [DecisionTreeClassifier(max_depth=10, max_features = 'sqrt',random_state=10)]
 		#self.model_name = ["ExtraTreesClassifier"]
-		#self.model_list = [ ExtraTreesClassifier(n_estimators=1)]
-		
+		#self.model_list = [ ExtraTreesClassifier(n_estimators=125)]
+		self.model_name = ["ExtraTreesClassifier", 
+							"RandomForestClassifier",
+							]
+		self.model_list = [ ExtraTreesClassifier(n_estimators=130) ,
+							RandomForestClassifier(n_estimators=98, max_depth=None, min_samples_split=2, random_state=1),
+							]
+							
 	def getModel(self,X,Y):
 		testAssist = plkAssitClassifier(self.model_name, self.model_list, X, Y)
 		best_model_name, best_model_list = testAssist.compareModel()
 		model_prefinal = testAssist.find_best_param_MODEL(best_model_name, best_model_list)
 
-		"""for i in range(len(model_prefinal)):
-			M = plkc.Classifier(X,Y)
-			M.process(X,Y, model_process = model_list[i] )
+		print("DEBUT TEST POUR CHAQUE MODEL OPTIMISE")
+		'''for i in range(len(model_prefinal)):
+			print("MODEL NUMERO", i)
+			M = Classifier(X,Y)
+			M.process(X,Y, model_process = self.model_list[i] )
 			M.cross_validation_Classifier()
-			M.training_score_Classifier()"""
+			M.training_score_Classifier()'''
 
 		model_final = testAssist.voting(model_prefinal)
-		"""print("DEBUT voting ")
+		'''print("sssssssDEBUT voting ")
 		M1 = Classifier(X,Y)
 		M1.process(X,Y, model_process = model_final )
 		M1.cross_validation_Classifier()
 		M1.training_score_Classifier()
 		A = M1.cross_validation_Classifier()
 		print("CV VOTING: ", A.mean())
-		print("metric VOTING: ", M1.training_score_Classifier() )"""
+		print("metric VOTING: ", M1.training_score_Classifier() )'''
 
 		return model_final
 

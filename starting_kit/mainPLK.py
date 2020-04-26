@@ -21,6 +21,7 @@ from os.path import isfile
 from sklearn.base import BaseEstimator
 from sklearn.tree import DecisionTreeClassifier
 import plkClassifier as plkc
+import os
 
 import warnings
 
@@ -34,6 +35,8 @@ with warnings.catch_warnings():
 	import plkPreprocessing as prep
 
 	from sklearn.metrics import make_scorer
+	from sklearn import metrics
+
 	from sklearn.model_selection import cross_val_score
 
 	from sklearn.neural_network import MLPClassifier
@@ -117,20 +120,20 @@ if __name__=="__main__":
 
 	preop = prep.Preprocessor()
 
-	X_train1, Y_train1 = prep.Preprocessor.outliersDeletion(X_train,Y_train)
+	"""X_train1, Y_train1 = prep.Preprocessor.outliersDeletion(X_train,Y_train)
 
 	X_train1 = preop.fit_transform(X_train1, Y_train1)
 
 	print(len(X_train1[0]))
 	print(len(X_train1))
-	print(len(Y_train1))
+	print(len(Y_train1))"""
 
 
 
 
 	model_nameS = ["ExtraTreesClassifier", "RandomForestClassifier"]
 	model_listS = [ ExtraTreesClassifier() ,RandomForestClassifier(n_estimators=116, max_depth=None, min_samples_split=2, random_state=1)]
-
+	
 	#testplkClassifier(X_train1, Y_train1, model_nameS, model_listS)
 	
 	"""a = plkc.findModel() # TEST 1
@@ -138,7 +141,7 @@ if __name__=="__main__":
 	print(model retourné,m)"""
 	
 	#TEST2
-	m = model()
+	'''m = model()
 	M1 = plkc.Classifier(X_train,Y_train) # pour la cv, on utilise NOTRE MODEL
 	print("DEBUT MODEL FIN")
 	M1.process(X_train,Y_train, model_process = m )
@@ -146,8 +149,31 @@ if __name__=="__main__":
 	M1.training_score_Classifier()
 	A = M1.cross_validation_Classifier()
 	print("CV FIN: ", A.mean())
-	print("metric FIN: ", M1.training_score_Classifier() )
+	print("metric FIN: ", M1.training_score_Classifier() )'''
 
+	print(model_dir + '_model.pickle')
+	M =model()
+
+	if os.path.isfile(model_dir + '_model.pickle'):
+		print("ON CHARGE LE MODEL DEJA EXISTANT")
+		M.load(path=model_dir)
+		M.isFitted=True
+
+	M.fit(X_train,Y_train)
+	scoring_function1 = getattr(metrics, "balanced_accuracy_score")
+	res = cross_val_score(M, X_train,Y_train, cv=5 , scoring = make_scorer(scoring_function1))
+	print("cross_validation_Classifier:  ", res)
+	print("cross_validation_Classifier (moyenne)  ", res.mean())
+
+	"""print(M)
+	M1 = plkc.Classifier(X_train, Y_train) # ON LUI TRANSMET LES DONNEES BRUTS ICI 
+	M1.process(X_train, Y_train, model_process = M )
+
+	M1.cross_validation_Classifier()
+	M1.training_score_Classifier()
+	A = M1.cross_validation_Classifier()
+	print("CV FIN: ", A.mean())
+	print("metric FIN: ", M1.training_score_Classifier())"""
 
 '''
 	#X_Random = np.random.rand(10752,203) #105752 lignes et 203 colonnes pour les images
