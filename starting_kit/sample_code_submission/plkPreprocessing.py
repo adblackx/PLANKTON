@@ -31,14 +31,15 @@ from sklearn import metrics
 class Preprocessor(BaseEstimator):
     '''n_components == nb_feat ==> no pca'''
     def __init__(self):
-        n_components = 22 #22 for PCA 
-        nb_feat = 3970
+        n_components = 19 #22 for raw 
+        nb_feat = 197 # 3970 for raw
         self.skb = SelectKBest(chi2, k = nb_feat)
         self.pca = KernelPCA(n_components)
         self.scaler = StandardScaler()
 
     def fit(self, X, Y):
-        X_temp = createNewFeatures(X)
+        #X_temp = createNewFeatures(X)
+        X_temp = X
         self.skb = self.skb.fit(X_temp,Y)
         X_temp = self.skb.transform(X) #car si non pca n'aura pas les bonnes dimensions
         self.scaler = self.scaler.fit(X_temp)
@@ -47,20 +48,22 @@ class Preprocessor(BaseEstimator):
         return self
 
     def fit_transform(self, X, Y):
-        X_res = createNewFeatures(X)
+        #X_res = createNewFeatures(X)
+        X_res = X
         X_res = self.skb.fit_transform(X_res,Y)
         X_res = self.scaler.fit_transform(X_res)
         X_res = self.pca.fit_transform(X_res)
         return X_res
 
     def transform(self, X):
-        X_res = createNewFeatures(X)
+        #X_res = createNewFeatures(X)
+        X_res = X
         X_res = self.skb.transform(X_res)
         X_res = self.scaler.transform(X_res)
         X_res = self.pca.transform(X_res)
         return X_res
     
-    def outliersDeletion(X, Y, nbNeighbors = 146):
+    def outliersDeletion(X, Y, nbNeighbors = 3): #146 for raw
         sizeb = X.shape[0]
         lof = LocalOutlierFactor(n_neighbors=nbNeighbors, metric = 'correlation')
         decision = lof.fit_predict(X)
