@@ -283,8 +283,11 @@ class plkAssitClassifier:
 				#distributions = dict( n_estimators=np.arange(150,200) , min_samples_split=[2],random_state=[0,1,2] )
 				if model_name[i] == "ExtraTreesClassifier" or model_name[i] == "RandomForestClassifier" :
 					print(model_name[i])
-					distributions = dict( n_estimators=np.arange(190,200) , min_samples_split=[2], random_state=[2] )
-				else :
+					distributions = dict( n_estimators=np.arange(2,3) , min_samples_split=[2], random_state=[2] )
+				elif model_name[i] == "DecisionTreeClassifier" :
+					print(model_name[i])
+					distributions = dict( max_depth=np.arange(10,20) , max_features=['sqrt','log2'], random_state=[42] )
+				else:
 					print("pas encore pris en compte.... il n'y a que deux modeles interessant pour le moment")
 				search = self.best_param_MODEL(logistic, distributions)
 				#print(search.best_params_)
@@ -335,7 +338,11 @@ class findModel:
 	def __init__(self):
 		self.model_name = ["ExtraTreesClassifier", "RandomForestClassifier"]
 		self.model_list = [ ExtraTreesClassifier(n_estimators=1) ,RandomForestClassifier(n_estimators=1, max_depth=None, min_samples_split=2, random_state=1)]
-
+		#self.model_name = ["DecisionTreeClassifier",] 
+		#self.model_list = [DecisionTreeClassifier(max_depth=10, max_features = 'sqrt',random_state=10)]
+		#self.model_name = ["ExtraTreesClassifier"]
+		#self.model_list = [ ExtraTreesClassifier(n_estimators=1)]
+		
 	def getModel(self,X,Y):
 		testAssist = plkAssitClassifier(self.model_name, self.model_list, X, Y)
 		best_model_name, best_model_list = testAssist.compareModel()
@@ -433,7 +440,7 @@ if __name__=="__main__":
 	#testAssist= plkAssitClassifier(["Random Forest"], [RandomForestClassifier(n_estimators=196, max_depth=None, min_samples_split=2, random_state=19, min_samples_leaf= 7)] , X_train, Y_train)
 	#model_bestParam = testAssist.find_best_param_MODEL(RandomForestClassifier())
 
-	model_nameS1 = ["ExtraTreesClassifier", "RandomForestClassifier"]
+	"""model_nameS1 = ["ExtraTreesClassifier", "RandomForestClassifier"]
 	model_listS1 = [ ExtraTreesClassifier() ,RandomForestClassifier(n_estimators=116, max_depth=None, min_samples_split=2, random_state=1)]
 	print("model_listS1 ",model_listS1)
 	testAssist= plkAssitClassifier(model_nameS1, model_listS1, X_train, Y_train)
@@ -443,7 +450,7 @@ if __name__=="__main__":
 	M1 = Classifier(X_train,Y_train)
 	M1.process(X_train,Y_train, model_process = model_final )
 	M1.cross_validation_Classifier()
-	M1.training_score_Classifier()
+	M1.training_score_Classifier()"""
 
 	"""
 	print("debut test best param")

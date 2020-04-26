@@ -57,6 +57,7 @@ with warnings.catch_warnings():
 	from sklearn.datasets import load_iris
 	from data_manager import DataManager
 	from model import model
+	from sklearn.tree import DecisionTreeClassifier
 
 
 def testplkClassifier(X, Y, model_name, model_list):
@@ -138,7 +139,7 @@ if __name__=="__main__":
 	
 	#TEST2
 	m = model()
-	M1 = plkc.Classifier(X_train,Y_train)
+	M1 = plkc.Classifier(X_train,Y_train) # pour la cv, on utilise NOTRE MODEL
 	print("DEBUT MODEL FIN")
 	M1.process(X_train,Y_train, model_process = m )
 	M1.cross_validation_Classifier()

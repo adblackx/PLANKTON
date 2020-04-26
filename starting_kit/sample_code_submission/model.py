@@ -20,6 +20,10 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.pipeline import Pipeline
 from sys import path
 from sys import argv
+from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
+from sklearn.ensemble import ExtraTreesClassifier
+from sklearn.ensemble import VotingClassifier
+
 
 class model(BaseEstimator):
 
@@ -28,7 +32,7 @@ class model(BaseEstimator):
 	"""
 
 	'''plkClassifier: a model that using best model from testClassifier'''
-	def __init__(self ):
+	def __init__(self, isFitted=False ):
 		'''We replace this model by others model, should be used for usging best model parameters'''
 
 		#self.clf = VotingClassifier( estimators=[('rfc', RandomForestClassifier(n_estimators=116, max_depth=None, min_samples_split=2, random_state=1))], final_estimator=LogisticRegression() )
@@ -44,6 +48,7 @@ class model(BaseEstimator):
 		self.num_feat=1
 		self.num_labels=1
 		self.prepo = prep.Preprocessor()
+		self.isFitted = isFitted;
 
 
 
@@ -60,20 +65,34 @@ class model(BaseEstimator):
 		if y.ndim>1: 
 			self.num_labels = y.shape[1]
 		if (self.num_train_samples != num_train_samples):
-			print("fit: THERE A PROBLEM WITH THE DATA")
+			print("model.py, fit: THERE IS A PROBLEM WITH THE DATA")
 
 		#X1, y1 = self.prepo.outliersDeletion(X, y)
 		#X1 = self.prepo.fit_transform(X1, y1)
-		x1,y1 = prep.Preprocessor.outliersDeletion(X,y)
-		a = plkc.findModel()
-		m = a.getModel(X, y)
-		pipe_class = Pipeline([
-					('preprocessing', self.prepo ),
-					('voting', m)
-					])		
-		self.clf = pipe_class
+		
+		if not self.isFitted :
+			x1,y1 = prep.Preprocessor.outliersDeletion(X,y)
+			a = plkc.findModel()
+			m = a.getModel(X, y)
 
-		self.clf.fit(x1, y1)
+			'''clf1 = ExtraTreesClassifier(n_estimators=196, random_state=2)
+			clf2 = RandomForestClassifier(n_estimators=196, random_state=2)
+			clf3 = DecisionTreeClassifier(max_depth=10, max_features = 'sqrt',random_state=42)
+
+			m = VotingClassifier(estimators=[
+			('lr', clf1), ('rf', clf2), ('gnb', clf3)], voting='hard')'''
+			pipe_class = Pipeline([
+						('preprocessing', self.prepo ),
+						('voting', m)
+						])
+
+			self.clf = pipe_class
+			self.clf.fit(x1, y1)
+			self.save()
+			self.isFitted = True
+		else:
+			self.clf = self.load()
+			
 
 	def predict(self, X):
 		''' This is called to make predictions on test data. Predicted classes are output.'''
@@ -95,6 +114,7 @@ class model(BaseEstimator):
 		return self.clf.classes_
 
 	def save(self, path="./"):
+		print("save ", path, " ",'_model.pickle' )
 		file = open(path + '_model.pickle', "wb")
 		pickle.dump(self, file)
 		file.close()
