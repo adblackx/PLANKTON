@@ -63,51 +63,32 @@ with warnings.catch_warnings():
 	from sklearn.tree import DecisionTreeClassifier
 
 
-def testplkClassifier(X, Y, model_name, model_list):
-	testAssist = plkc.plkAssitClassifier(model_name, model_list, X, Y)
-	best_model_name, best_model_list = testAssist.compareModel()
-	model_prefinal = testAssist.find_best_param_MODEL(best_model_name, best_model_list)
-	#print("model_prefinal ", model_prefinal)
-
-	"""for i in range(len(model_prefinal)):
-		M = plkc.Classifier(X,Y)
-		M.process(X,Y, model_process = model_list[i] )
-		M.cross_validation_Classifier()
-		M.training_score_Classifier()"""
-
-	model_final = testAssist.voting(model_prefinal)
-	print("DEBUT VOTING ")
-	M1 = plkc.Classifier(X,Y)
-	#print("model_final",model_final)
-	M1.process(X,Y, model_process = model_final )
-	A = M1.cross_validation_Classifier()
-	print("CV VOTING: ", A.mean())
-	print("metric VOTING: ", M1.training_score_Classifier() )
 
 
+def testclassCVM(X, Y, model):
+	print("testclassCVM : BEGIN")
+	cvm = plkc.classCVM(X,Y)
+	cvm.process(X,Y,model)
+	cvm.cross_validation_Classifier()
+	cvm.training_score_Classifier()
+	print("testclassCVM : END")
 
-def testplkModel(X, Y):
-	metric_name1, scoring_function1 = get_metric()
+def testAssistModel(X, Y, model_name, model_list):
+	print("testAssistModel : BEGIN")
 
-	A = plkm.plkClassifier()
-	#A.fit(X_train, Y_train)
-	"""	M = plkc.Classifier(A.xPLK,A.yPLK)
-	M.testModel( model_process = A )
-	scores = M.cross_validation_Classifier()"""
-	res = cross_val_score(A, X, Y, cv=5 , scoring = make_scorer(scoring_function1))
-	print("A cross_validation_Classifier:  ", res)
+	a = plkc.assistModel(X,Y)
+	a.setModels(model_name, model_list)
+	model = a.getModel()
+	model.fit(X,Y)
 
-	B = plkm.plkClassifier()
-	res = cross_val_score(B, X, Y, cv=5 , scoring = make_scorer(scoring_function1))
-	print("B cross_validation_Classifier:  ", res)
+	print("testAssistModel : END")
+
+
+
 
 if __name__=="__main__":
 
-	model_name = ["Nearest Neighbors", "Random Forest"]
-
-	model_list = [KNeighborsClassifier(1),  RandomForestClassifier(n_estimators=196, max_depth=None, min_samples_split=2, random_state=19, min_samples_leaf= 7)]
-	
-	data_dir = 'public_data_raw_gaiasavers'          # POUR TRAVAILLER SUR RAW DATA
+	"""data_dir = 'public_data_raw_gaiasavers'          # POUR TRAVAILLER SUR RAW DATA
 	data_name = 'plankton'
 	D = DataManager(data_name, data_dir) 
 
@@ -116,72 +97,12 @@ if __name__=="__main__":
 
 	print(len(X_train[0]))
 	print(len(X_train))
-	print(len(Y_train))
+	print(len(Y_train))"""
 
-	preop = prep.Preprocessor()
-
-	"""X_train1, Y_train1 = prep.Preprocessor.outliersDeletion(X_train,Y_train)
-
-	X_train1 = preop.fit_transform(X_train1, Y_train1)
-
-	print(len(X_train1[0]))
-	print(len(X_train1))
-	print(len(Y_train1))"""
-
-
-
+	X_train = np.random.rand(1000,203) #105752 lignes et 203 colonnes pour les images
+	Y_train = np.random.randint(7,size=1000) #105752 lignes et 203 colonnes pour les images
+	testclassCVM(X_train, Y_train,ExtraTreesClassifier() )
 
 	model_nameS = ["ExtraTreesClassifier", "RandomForestClassifier"]
 	model_listS = [ ExtraTreesClassifier() ,RandomForestClassifier(n_estimators=116, max_depth=None, min_samples_split=2, random_state=1)]
-	
-	#testplkClassifier(X_train1, Y_train1, model_nameS, model_listS)
-	
-	"""a = plkc.findModel() # TEST 1
-	m = a.getModel(X_train1, Y_train1)
-	print(model retourné,m)"""
-	
-	#TEST2
-	'''m = model()
-	M1 = plkc.Classifier(X_train,Y_train) # pour la cv, on utilise NOTRE MODEL
-	print("DEBUT MODEL FIN")
-	M1.process(X_train,Y_train, model_process = m )
-	M1.cross_validation_Classifier()
-	M1.training_score_Classifier()
-	A = M1.cross_validation_Classifier()
-	print("CV FIN: ", A.mean())
-	print("metric FIN: ", M1.training_score_Classifier() )'''
-
-	print(model_dir + '_model.pickle')
-	M =model()
-
-	if os.path.isfile(model_dir + '_model.pickle'):
-		print("ON CHARGE LE MODEL DEJA EXISTANT")
-		M.load(path=model_dir)
-		M.isFitted=True
-
-	M.fit(X_train,Y_train)
-	scoring_function1 = getattr(metrics, "balanced_accuracy_score")
-	res = cross_val_score(M, X_train,Y_train, cv=5 , scoring = make_scorer(scoring_function1))
-	print("cross_validation_Classifier:  ", res)
-	print("cross_validation_Classifier (moyenne)  ", res.mean())
-
-	"""print(M)
-	M1 = plkc.Classifier(X_train, Y_train) # ON LUI TRANSMET LES DONNEES BRUTS ICI 
-	M1.process(X_train, Y_train, model_process = M )
-
-	M1.cross_validation_Classifier()
-	M1.training_score_Classifier()
-	A = M1.cross_validation_Classifier()
-	print("CV FIN: ", A.mean())
-	print("metric FIN: ", M1.training_score_Classifier())"""
-
-'''
-	#X_Random = np.random.rand(10752,203) #105752 lignes et 203 colonnes pour les images
-	#Y_Random = np.random.randint(7,size=10752) #105752 lignes et 203 colonnes pour les images
-	Data = load_wine()
-	X_Random = Data.data
-	Y_Random = Data.target
-
-
-	testplkClassifier(X_Random, Y_Random, model_nameS, model_listS)'''
-	#testplkModel(X_train, Y_train)
+	testAssistModel(X_train, Y_train,model_nameS, model_listS)
