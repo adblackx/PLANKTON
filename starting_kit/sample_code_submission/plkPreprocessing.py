@@ -38,8 +38,9 @@ class Preprocessor(BaseEstimator):
         self.scaler = StandardScaler()
 
     def fit(self, X, Y):
-        #X_temp = createNewFeatures(X)
-        X_temp = X
+        
+        X_temp = createNewFeatures(np.copy(X))
+        #X_temp = X
         self.skb = self.skb.fit(X_temp,Y)
         X_temp = self.skb.transform(X) #car si non pca n'aura pas les bonnes dimensions
         self.scaler = self.scaler.fit(X_temp)
@@ -48,16 +49,16 @@ class Preprocessor(BaseEstimator):
         return self
 
     def fit_transform(self, X, Y):
-        #X_res = createNewFeatures(X)
-        X_res = X
+        X_res = createNewFeatures(X)
+        #X_res = X
         X_res = self.skb.fit_transform(X_res,Y)
         X_res = self.scaler.fit_transform(X_res)
         X_res = self.pca.fit_transform(X_res)
         return X_res
 
     def transform(self, X):
-        #X_res = createNewFeatures(X)
-        X_res = X
+        X_res = createNewFeatures(X)
+        #X_res = X
         X_res = self.skb.transform(X_res)
         X_res = self.scaler.transform(X_res)
         X_res = self.pca.transform(X_res)
@@ -135,13 +136,27 @@ def findBestKneighbors(X, Y):
  
 
 def binariseImage(X):
-    X = X/128
-    return X.astype(int)
+    #X = X/255
+    X = np.where(X>127.5, 1, 0)
+    return X
 
+def sumColumnLine(X):
+    res = []
+    for img in range(len(X)):
+        img_2d = np.reshape(X[img], (100, 100))
+        sum_line = np.sum(img_2d, axis = 0)
+        sum_column = np.sum(img_2d, axis = 1)
+        res.append([*sum_line,*sum_column])
+    return np.array(res)/100
+        
 def createNewFeatures(X):
+    var = X.var(axis=1)
+    std = X.std(axis=1)
+    X = binariseImage(X)
+    X = sumColumnLine(X)
     X = np.c_[X,X.mean(axis=1)]
-    X = np.c_[X,X.std(axis=1)]
-    X = np.c_[X,X.var(axis=1)]
+    X = np.c_[X,std]
+    X = np.c_[X,var]
     return X
     
     

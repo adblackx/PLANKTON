@@ -63,6 +63,7 @@ print(D)
 
 '''
 
+'''
 D = DataManager(data_name, data_dir) # Load data
 print("***Outliers Deletion***")
 print(D)
@@ -75,11 +76,13 @@ print("type de X : ", type(X))
 
 print("X shape : ", X.shape)
 #X = X/255
-#X = plkp.createNewFeatures(X)
+X = plkp.createNewFeatures(X)
 print(X)
 print(X.shape)
+print(X)
 Xsauv = np.copy(X)
 Ysauv = np.copy(Y)
+'''
 
 '''
 res = plkp.findBestKneighbors(X,Y)
@@ -107,13 +110,17 @@ print("best nb features for pca  = ", res2)
 
 '''
 
+D = DataManager(data_name, data_dir) # Load data
+print("***Outliers Deletion***")
+print(D)
+Xsauv = D.data['X_train']
+Ysauv = D.data['Y_train']
+
+#Xsauv = plkp.createNewFeatures(Xsauv)
+
 clf = RandomForestClassifier(n_estimators=196, max_depth=None, min_samples_split=2, random_state=1)
 prepro = Preprocessor()
 pipe = Pipeline([('prepro', prepro), ('clf', clf)])
 metric_name1, scoring_function1 = get_metric()
 res = cross_val_score(pipe, Xsauv, Ysauv, cv=10, scoring = make_scorer(scoring_function1))
-print(res)
-
-temp = prepro.fit_transform(X,Y)
-print("temp shape :", temp.shape)
-print(temp) 
+print(res, " moyenne = ", res.mean())
