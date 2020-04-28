@@ -59,7 +59,7 @@ class Preprocessor(BaseEstimator):
     def fit_transform(self, X, Y):
         #X_res = createNewFeatures(X)
         X_res = X
-        if(X.shape[1] != self.feat_size):
+        if(X.shape[1] != 204):
             X_res = createNewFeatures(np.copy(X))
         X_res = self.skb.fit_transform(X_res,Y)
         X_res = self.scaler.fit_transform(X_res)
@@ -69,7 +69,7 @@ class Preprocessor(BaseEstimator):
     def transform(self, X):
         #X_res = createNewFeatures(X)    
         X_res = X
-        if(X.shape[1] != self.feat_size):
+        if(X.shape[1] != 204):
             X_res = createNewFeatures(np.copy(X))
         X_res = self.skb.transform(X_res)
         X_res = self.scaler.transform(X_res)

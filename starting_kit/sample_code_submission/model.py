@@ -63,7 +63,9 @@ class model(BaseEstimator):
 	'''
 
 	def __init__(self, isFitted=False, model_name = ["ExtraTreesClassifier","RandomForestClassifier"],
-			model_list = [ ExtraTreesClassifier() ,RandomForestClassifier()], clf=None):
+			model_list = [ ExtraTreesClassifier(n_estimators=250, min_samples_split=2,random_state=2) ,
+			RandomForestClassifier(n_estimators=200, min_samples_split=2,random_state=2)], 
+			clf=None):
 
 		"""
 		We we call the constructor of this class, if isFitted = False then we generate a model
@@ -121,7 +123,7 @@ class model(BaseEstimator):
 		if (self.num_train_samples != num_train_samples):
 			print("model.py, fit: THERE IS A PROBLEM WITH THE DATA")
 
-		if not self.isFitted :
+		"""if not self.isFitted :
 
 			# We use here preprocessing
 			x1,y1 = prep.Preprocessor.construct_features(X,y)
@@ -141,11 +143,27 @@ class model(BaseEstimator):
 			self.clf.fit(x1, y1)
 			self.isFitted = True # so we generate the best model here
 			#self.save()
+		"""
+		if not self.isFitted :
+			#hardcoded version
+
+			x1,y1 = prep.Preprocessor.construct_features(X,y)
+			a = plkc.assistModel(x1,y1,prepo=prep.Preprocessor())
+
+			voting_model = a.voting(self.model_list)
+			pipe_class = Pipeline([
+						('preprocessing', self.prepo ),
+						('voting', voting_model)
+						])
+
+			self.clf = pipe_class
+			self.clf.fit(x1, y1)
 
 		else: 
 			# it is the case that the best model is generated, so we load it, no need to fit again 
 			# it takes too long time...
-			x1, y1 = X,y
+			x1,y1 = prep.Preprocessor.construct_features(X,y)
+			#x1, y1 = X,y
 			#self = self.load
 
 			self.clf.fit(x1, y1)

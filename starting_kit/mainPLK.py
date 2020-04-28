@@ -63,8 +63,8 @@ with warnings.catch_warnings():
 	from sklearn.tree import DecisionTreeClassifier
 	from sklearn.pipeline import Pipeline
 	import plkPreprocessing as prep
-
-
+	from sklearn.neighbors import KNeighborsClassifier
+	from sklearn.ensemble import AdaBoostClassifier
 
 
 def testclassCVM(X, Y, model):
@@ -86,9 +86,12 @@ def testAssistModel(X, Y, model_name, model_list):
 def testModel(X, Y):
 	print("testLoadModel : BEGIN")
 
-	a = model(
-	model_name = ["RandomForestClassifier"],
-	model_list =[ RandomForestClassifier()] )
+	a = model()
+	"""model(
+	model_name = ["DecisionTreeClassifier", "AdaBoostClassifier", "ExtraTreesClassifier","RandomForestClassifier" ],
+	model_list =[ DecisionTreeClassifier(), AdaBoostClassifier(), ExtraTreesClassifier() ,RandomForestClassifier()], 
+	)"""
+
 
 	a.fit(X,Y)
 	#print(a.get_classes())
@@ -98,6 +101,7 @@ def testModel(X, Y):
 	res = cross_val_score(a, X, Y, cv=5 , scoring = make_scorer(scoring_function1))
 	print("cross_validation_Classifier:  ", res)
 	print("cross_validation_Classifier (moyenne)  ", res.mean())	"""
+	print(a)
 	print("testLoadModel : END")
 
 if __name__=="__main__":

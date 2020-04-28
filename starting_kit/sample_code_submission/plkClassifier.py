@@ -301,9 +301,9 @@ class assistModel:
 
 		for i in range(len(res1)):
 		    #if res2[i] > seuil and res3[i]> seuil:
-		    if model_nameF[i] == "ExtraTreesClassifier" or model_nameF[i] == "RandomForestClassifier" or model_nameF[i] == "DecisionTreeClassifier" :
-		        self.best_model_namePLK.append(model_nameF[i])
-		        self.best_model_listPLK.append(model_listF[i])
+		    #if model_nameF[i] == "ExtraTreesClassifier" or model_nameF[i] == "RandomForestClassifier" or model_nameF[i] == "DecisionTreeClassifier" :
+		    self.best_model_namePLK.append(model_nameF[i])
+		    self.best_model_listPLK.append(model_listF[i])
 
 		print("compareModel: best models returned ", self.best_model_namePLK )
 
@@ -429,7 +429,7 @@ class assistModel:
 				name = model_list[i].steps[1][0]
 				if model_name[i] == "ExtraTreesClassifier" or model_name[i] == "RandomForestClassifier" :
 					param = ["n_estimators", "min_samples_split","random_state"]
-					p1 = [100]
+					p1 = [200,250]
 					value = [p1, [2], [2]]
 					distributions = eval(self.paramtoDict(param,value,name))
 
@@ -441,8 +441,22 @@ class assistModel:
 				elif model_name[i] == "DecisionTreeClassifier" :
 					name = model_list[i].steps[1][0]
 					param = ["max_depth", "max_features","random_state"]
-					value = [[13], ['sqrt'], [42]]
+					value = [[10,20,30,40,50,100,200], ['sqrt'], [42]]
 					distributions = eval(self.paramtoDict(param,value,name))
+
+				elif model_name[i] == "KNeighborsClassifier" :
+					name = model_list[i].steps[1][0]
+					param = ["n_neighbors", "algorithm",]
+					value = [[1,2,3,4,5], ['auto']]
+					distributions = eval(self.paramtoDict(param,value,name))
+
+				elif model_name[i] == "AdaBoostClassifier" :
+					name = model_list[i].steps[1][0]
+					param = ["n_estimators", "algorithm", "random_state"]
+					value = [[110], ["SAMME"],[2] ]
+					distributions = eval(self.paramtoDict(param,value,name))
+
+
 				else:
 					print("pas encore pris en compte.... il n'y a que deux modeles interessant pour le moment")
 				search = self.best_param_MODEL(logistic, distributions)
