@@ -43,10 +43,10 @@ class Preprocessor(BaseEstimator):
         self.skb = SelectKBest(chi2, k = nb_feat)
         self.pca = KernelPCA(n_components)
         self.scaler = StandardScaler()
-        self.feat_size = 0
+        self.feat_size = 204
+
     def fit(self, X, Y):
-        
-        X_temp = createNewFeatures(np.copy(X))
+        #X_temp = createNewFeatures(np.copy(X))
         X_temp = X
         self.skb = self.skb.fit(X_temp,Y)
         X_temp = self.skb.transform(X) #car si non pca n'aura pas les bonnes dimensions
@@ -57,20 +57,20 @@ class Preprocessor(BaseEstimator):
         return self
 
     def fit_transform(self, X, Y):
-        X_res = createNewFeatures(X)
+        #X_res = createNewFeatures(X)
         X_res = X
-        '''if(X.shape[1] != self.feat_size):
-            X_res = createNewFeatures(np.copy(X))'''
+        if(X.shape[1] != self.feat_size):
+            X_res = createNewFeatures(np.copy(X))
         X_res = self.skb.fit_transform(X_res,Y)
         X_res = self.scaler.fit_transform(X_res)
         X_res = self.pca.fit_transform(X_res)
         return X_res
 
     def transform(self, X):
-        X_res = createNewFeatures(X)    
+        #X_res = createNewFeatures(X)    
         X_res = X
-        '''if(X.shape[1] != self.feat_size):
-            X_res = createNewFeatures(np.copy(X))'''
+        if(X.shape[1] != self.feat_size):
+            X_res = createNewFeatures(np.copy(X))
         X_res = self.skb.transform(X_res)
         X_res = self.scaler.transform(X_res)
         X_res = self.pca.transform(X_res)
@@ -87,7 +87,7 @@ class Preprocessor(BaseEstimator):
     def construct_features(X,Y, outliers_deletion = True):
         X = createNewFeatures(X)
         if outliers_deletion :
-            X,Y = outliersDeletion(X,Y)
+            X,Y = Preprocessor.outliersDeletion(X,Y)
         return X,Y
 
 def binariseImage(X):

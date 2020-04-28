@@ -124,7 +124,7 @@ class model(BaseEstimator):
 		if not self.isFitted :
 
 			# We use here preprocessing
-			x1,y1 = prep.Preprocessor.outliersDeletion(X,y)
+			x1,y1 = prep.Preprocessor.construct_features(X,y)
 			#x1 = prep.Preprocessor().fit_transform(x1,y1)
 			#x1, y1 = X,y
 			class_to_find_voting_model = plkc.assistModel(x1,y1,prepo=prep.Preprocessor())

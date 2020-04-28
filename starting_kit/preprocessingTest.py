@@ -109,8 +109,9 @@ print(D)
 X_test = D.data['X_train']
 Y_test = D.data['Y_train'].ravel()
 
-X_test = plkp.createNewFeatures(X_test)
-X_test, Y_test = Preprocessor.outliersDeletion(X_test, Y_test)
+#X_test = plkp.createNewFeatures(X_test)
+#X_test, Y_test = Preprocessor.outliersDeletion(X_test, Y_test)
+X_test, Y_test = Preprocessor.construct_features(X_test, Y_test)
 
 
 clf = RandomForestClassifier(n_estimators=196, max_depth=None, min_samples_split=2, random_state=1)
