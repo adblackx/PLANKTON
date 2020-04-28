@@ -61,6 +61,8 @@ with warnings.catch_warnings():
 	from data_manager import DataManager
 	from model import model
 	from sklearn.tree import DecisionTreeClassifier
+	from sklearn.pipeline import Pipeline
+	import plkPreprocessing as prep
 
 
 
@@ -75,20 +77,32 @@ def testclassCVM(X, Y, model):
 
 def testAssistModel(X, Y, model_name, model_list):
 	print("testAssistModel : BEGIN")
-
 	a = plkc.assistModel(X,Y)
 	a.setModels(model_name, model_list)
 	model = a.getModel()
 	model.fit(X,Y)
-
 	print("testAssistModel : END")
 
+def testModel(X, Y):
+	print("testLoadModel : BEGIN")
 
+	a = model(
+	model_name = ["RandomForestClassifier"],
+	model_list =[ RandomForestClassifier()] )
 
+	a.fit(X,Y)
+	#print(a.get_classes())
+	#a.fit(X,Y)
+	testclassCVM(X,Y,a)
+	"""scoring_function1 = getattr(metrics, "balanced_accuracy_score")
+	res = cross_val_score(a, X, Y, cv=5 , scoring = make_scorer(scoring_function1))
+	print("cross_validation_Classifier:  ", res)
+	print("cross_validation_Classifier (moyenne)  ", res.mean())	"""
+	print("testLoadModel : END")
 
 if __name__=="__main__":
 
-	"""data_dir = 'public_data_raw_gaiasavers'          # POUR TRAVAILLER SUR RAW DATA
+	data_dir = 'public_data_raw_gaiasavers'          # POUR TRAVAILLER SUR RAW DATA
 	data_name = 'plankton'
 	D = DataManager(data_name, data_dir) 
 
@@ -97,12 +111,23 @@ if __name__=="__main__":
 
 	print(len(X_train[0]))
 	print(len(X_train))
-	print(len(Y_train))"""
+	print(len(Y_train))
 
-	X_train = np.random.rand(1000,203) #105752 lignes et 203 colonnes pour les images
-	Y_train = np.random.randint(7,size=1000) #105752 lignes et 203 colonnes pour les images
-	testclassCVM(X_train, Y_train,ExtraTreesClassifier() )
+	
+			
 
-	model_nameS = ["ExtraTreesClassifier", "RandomForestClassifier"]
+	
+	#TEST WITH RANDOM DATA
+	#X_train = np.random.rand(100,203) #105752 lignes et 203 colonnes pour les images
+	#Y_train = np.random.randint(7,size=100) #105752 lignes et 203 colonnes pour les images
+	#pipe_class = ExtraTreesClassifier() 
+	#testclassCVM(X_train, Y_train, pipe_class)
+
+	#model_nameS = ["ExtraTreesClassifier", "RandomForestClassifier"]
+	#model_listS = [ ExtraTreesClassifier() ,RandomForestClassifier(n_estimators=116, max_depth=None, min_samples_split=2, random_state=1)]
+	#testAssistModel(X_train, Y_train,model_nameS, model_listS)
+
+	"""model_nameS = ["ExtraTreesClassifier", "RandomForestClassifier"]
 	model_listS = [ ExtraTreesClassifier() ,RandomForestClassifier(n_estimators=116, max_depth=None, min_samples_split=2, random_state=1)]
-	testAssistModel(X_train, Y_train,model_nameS, model_listS)
+	testAssistModel(X_train, Y_train,model_nameS, model_listS)"""
+	testModel(X_train,Y_train)

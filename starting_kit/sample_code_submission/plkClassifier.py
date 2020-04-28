@@ -50,6 +50,8 @@ with warnings.catch_warnings():
 	from sklearn.linear_model import LogisticRegression
 	from sklearn import metrics
 	from sklearn.model_selection import GridSearchCV
+	import plkPreprocessing as prep
+	from sklearn.pipeline import Pipeline
 
 
 class classCVM:
@@ -150,7 +152,7 @@ class assistModel:
 	    y : labels
 	"""
 
-	def __init__(self, x, y, alpha=0.1):
+	def __init__(self, x, y, alpha=0.1, prepo=prep.Preprocessor()):
 		self.model_namePLK = None
 		self.model_listPLK = None
 		self.x = x
@@ -160,10 +162,47 @@ class assistModel:
 		self.model_final = None
 		self.seuil = 0.1
 		self.alpha = alpha
+		self.prepo = prepo
 
 	def setModels(self, model_namePLK, model_listPLK):
 		self.model_namePLK = model_namePLK
 		self.model_listPLK = model_listPLK
+
+	def setModelsPrepro(self, model_namePLK, model_listPLK):
+		res = []
+		for i in np.arange(len(model_namePLK)):
+			res.append(Pipeline([
+						('preprocessing', self.prepo ),
+						(model_namePLK[i], model_listPLK[i])
+						]))
+
+		self.model_namePLK = model_namePLK
+		self.model_listPLK = res
+
+	def getModelPrepro(self):
+
+		best_model_name, best_model_list = self.compareModel()
+		model_prefinal = self.find_best_param_MODEL_Prepro(best_model_name, best_model_list)
+
+		print("DEBUT TEST POUR CHAQUE MODEL OPTIMISE")
+		'''for i in range(len(model_prefinal)):
+			print("MODEL NUMERO", i)
+			M = classCVM(X,Y)
+			M.classCVM(X,Y, classCVM = self.model_list[i] )
+			M.cross_validation_Classifier()
+			M.training_score_Classifier()'''
+
+		model_final = self.voting(model_prefinal)
+		'''print("DEBUT voting ")
+		M1 = classCVM(X,Y)
+		M1.classCVM(X,Y, classCVM = model_final )
+		M1.cross_validation_Classifier()
+		M1.training_score_Classifier()
+		A = M1.cross_validation_Classifier()
+		print("CV VOTING: ", A.mean())
+		print("metric VOTING: ", M1.training_score_Classifier() )'''
+
+		return model_final
 
 	def getModel(self):
 
@@ -219,7 +258,7 @@ class assistModel:
 	    c3=[]
 	    
 	    for i in np.arange(len(model_list)) :
-	    	print("finBest: models runned: " , model_list[i])
+	    	print("finBest: models runned: ")
 	    	M = classCVM(self.x,self.y)
 	    	M.process(x=self.x,y=self.y, model_process = model_list[i] )
 	    	scores = M.cross_validation_Classifier()
@@ -304,6 +343,7 @@ class assistModel:
 	    # uncomment to use RandomizedSearchCV 
 	    #clf = RandomizedSearchCV(logistic, distributions, random_state=0, scoring=make_scorer(scoring_function) ) 
 	    clf = GridSearchCV(logistic, distributions, scoring=make_scorer(scoring_function) )
+	    #print(clf)
 	    search = clf.fit(self.x, self.y)
 	    print(search.best_params_)
 	    return search
@@ -341,7 +381,7 @@ class assistModel:
 			"""
 			res = []
 			for i in range(len(model_list)):
-				print("find_best_param_MODEL: runs methode", model_list[i])
+				#print("find_best_param_MODEL: runs methode", model_list[i])
 				logistic = model_list[i]
 				if model_name[i] == "ExtraTreesClassifier" or model_name[i] == "RandomForestClassifier" :
 					distributions = dict( n_estimators=[98,125] , min_samples_split=[2], random_state=[2] )
@@ -357,6 +397,62 @@ class assistModel:
 					t = m.__dict__[v]
 					m.__dict__[v] = search.best_params_[v]
 					t = m.__dict__[v]
+				res.append(m)
+			return res
+
+	def paramtoDict(self, param,value, name):
+		a ="dict("
+		for i in range(len(param)):
+			a+= (name+"__"+str(param[i])+"="+str(value[i])+",")
+		a+=")"
+
+		return a
+
+	def find_best_param_MODEL_Prepro(self, model_name, model_list):
+			"""
+			This function runs the best models and print the results ( test function )
+			For each model we calculate the cross-valdiation and training performance
+
+			Parameters
+			----------
+			model_name: model's liste
+			model_list: list of random values for models
+
+			Returns
+			------
+			res: best parameters for each models
+			"""
+			res = []
+			for i in range(len(model_list)):
+				#print("find_best_param_MODEL: runs methode", model_list[i])
+				logistic = model_list[i]
+				name = model_list[i].steps[1][0]
+				if model_name[i] == "ExtraTreesClassifier" or model_name[i] == "RandomForestClassifier" :
+					param = ["n_estimators", "min_samples_split","random_state"]
+					p1 = [100]
+					value = [p1, [2], [2]]
+					distributions = eval(self.paramtoDict(param,value,name))
+
+					'''distributions = dict( model__n_estimators=[98,125] , 
+										model__min_samples_split=[2], 
+										model__random_state=[2] )'''
+					# a way to use alpha
+					#distributions = dict( n_estimators=np.arange(98-int(self.alpha*20), 125 + int(self.alpha*20)) , min_samples_split=[2], random_state=[2] )
+				elif model_name[i] == "DecisionTreeClassifier" :
+					name = model_list[i].steps[1][0]
+					param = ["max_depth", "max_features","random_state"]
+					value = [[13], ['sqrt'], [42]]
+					distributions = eval(self.paramtoDict(param,value,name))
+				else:
+					print("pas encore pris en compte.... il n'y a que deux modeles interessant pour le moment")
+				search = self.best_param_MODEL(logistic, distributions)
+				m = model_list[i][name]	
+				toSplit= name+'__'		
+				for v in search.best_params_:
+					deb,fin = v.split(toSplit, 1) # conversion to get the name
+					t = m.__dict__[fin]
+					m.__dict__[fin] = search.best_params_[v]
+					t = m.__dict__[fin]
 				res.append(m)
 			return res
 
@@ -440,10 +536,25 @@ if __name__=="__main__":
 	print(len(Y_train))"""
 
 
-	X_train = np.random.rand(1000,203) #105752 lignes et 203 colonnes pour les images
-	Y_train = np.random.randint(7,size=1000) #105752 lignes et 203 colonnes pour les images
-	testclassCVM(X_train, Y_train,ExtraTreesClassifier() )
+	X_train = np.random.rand(203,10000) #105752 lignes et 203 colonnes pour les images
+	Y_train = np.random.randint(7,size=203) #105752 lignes et 203 colonnes pour les images
+	"""testclassCVM(X_train, Y_train,ExtraTreesClassifier() )
 
 	model_nameS = ["ExtraTreesClassifier", "RandomForestClassifier"]
 	model_listS = [ ExtraTreesClassifier() ,RandomForestClassifier(n_estimators=116, max_depth=None, min_samples_split=2, random_state=1)]
-	testAssistModel(X_train, Y_train,model_nameS, model_listS)
+	testAssistModel(X_train, Y_train,model_nameS, model_listS)"""
+	a = assistModel(X_train, Y_train)
+	a.setModels(["ExtraTreesClassifier"], [ExtraTreesClassifier()])
+
+	pipe_class = [Pipeline([
+						('preprocessing', prep.Preprocessor() ),
+						('model', ExtraTreesClassifier())
+						])]
+
+	#model_prefinal = a.find_best_param_MODEL_Prepro(["ExtraTreesClassifier"], pipe_class)
+
+	a.setModelsPrepro(["ExtraTreesClassifier","RandomForestClassifier"], [ ExtraTreesClassifier() ,RandomForestClassifier()])
+
+	voting_model = a.getModelPrepro()
+
+	#print(Pipeline)

@@ -26,6 +26,8 @@ Model:
 				  for the data
 last updates:
 	- nous avons mis des commentaires partout pour eclaircir comment la classe fonctionne
+	- model_name et model_list SONT UTILISE QUE POUR HARDCODER SI ON VEUT POUR ACCELERER LES TESTS
+	MAIS DANS LA PLUPART DU TEMPS ON CHERCHE QUAND MEME LES MEILLEURS PARAMETRES SI isFitted = FALSE
 			
 """
 
@@ -47,7 +49,7 @@ from sklearn.ensemble import VotingClassifier
 
 class model(BaseEstimator):
 
-
+	test = None
 	'''Classifier: This is a Model using a Pipeline (preprocessing + model)
 		As we describe it upper:
 		 '''
@@ -60,8 +62,8 @@ class model(BaseEstimator):
 							DecisionTreeClassifier(max_depth=13, max_features = 'sqrt',random_state=42)]
 	'''
 
-	def __init__(self, isFitted=False,model_name = ["ExtraTreesClassifier","RandomForestClassifier"],
-			model_list = [ ExtraTreesClassifier() ,RandomForestClassifier()]):
+	def __init__(self, isFitted=False, model_name = ["ExtraTreesClassifier","RandomForestClassifier"],
+			model_list = [ ExtraTreesClassifier() ,RandomForestClassifier()], clf=None):
 
 		"""
 		We we call the constructor of this class, if isFitted = False then we generate a model
@@ -76,18 +78,22 @@ class model(BaseEstimator):
 			
 		This function check if 
 		"""
-
-		self.clf = None
+		
+		self.clf = clf
 		self.num_train_samples = 0
 		self.num_feat=1
 		self.num_labels=1
 		self.prepo = prep.Preprocessor()
-		self.isFitted = isFitted;
+		self.isFitted = isFitted
 		self.model_name = model_name
 		self.model_list = model_list
+		self.entier = 0
 
 
 	def fit(self, X, y):
+		#print( self.entier, self.isFitted, print(self.clf), print(self.test))
+		self.entier+=1
+
 		"""
 		This is the training method: parameters are adjusted with training data.
 		In fact, we start by checking that the data are the same.
@@ -121,9 +127,11 @@ class model(BaseEstimator):
 			#x1,y1 = prep.Preprocessor.outliersDeletion(X,y)
 			#x1 = prep.Preprocessor().fit_transform(x1,y1)
 			x1, y1 = X,y
-			class_to_find_voting_model = plkc.assistModel(x1,y1)
-			class_to_find_voting_model.setModels(self.model_name, self.model_list)
-			voting_model = class_to_find_voting_model.getModel()
+			class_to_find_voting_model = plkc.assistModel(x1,y1,prepo=prep.Preprocessor())
+			#class_to_find_voting_model.setModels(self.model_name, self.model_list)
+			class_to_find_voting_model.setModelsPrepro(self.model_name, self.model_list, )
+
+			voting_model = class_to_find_voting_model.getModelPrepro()
 			pipe_class = Pipeline([
 						('preprocessing', self.prepo ),
 						('voting', voting_model)
@@ -131,15 +139,18 @@ class model(BaseEstimator):
 
 			self.clf = pipe_class
 			self.clf.fit(x1, y1)
-			self.save()
 			self.isFitted = True # so we generate the best model here
+			#self.save()
 
 		else: 
 			# it is the case that the best model is generated, so we load it, no need to fit again 
 			# it takes too long time...
-			print("MODEL ON CHARGE: ")
-			self.clf = self.load()
-			
+			x1, y1 = X,y
+			#self = self.load
+
+			self.clf.fit(x1, y1)
+		print("FIT MON MODEL")
+
 
 	def predict(self, X):
 		"""
@@ -161,6 +172,7 @@ class model(BaseEstimator):
 		if (self.num_feat != num_feat): 
 			print("ARRGH: number of features in X does not match training data!")
 
+		print("PREDICT ")
 		return self.clf.predict(X)
 
 	def predict_proba(self, X):
@@ -178,6 +190,7 @@ class model(BaseEstimator):
 		probabilities by class (labels)
 
 		"""
+		print("PREDICT PROBA ")
 
 		return self.clf.predict_proba(X) 
 
