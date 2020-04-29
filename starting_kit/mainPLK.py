@@ -65,6 +65,10 @@ with warnings.catch_warnings():
 	import plkPreprocessing as prep
 	from sklearn.neighbors import KNeighborsClassifier
 	from sklearn.ensemble import AdaBoostClassifier
+	from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
+	from sklearn import metrics
+	from sklearn.model_selection import cross_val_score
+	from sklearn.metrics import make_scorer
 
 
 def testclassCVM(X, Y, model):
@@ -84,7 +88,7 @@ def testAssistModel(X, Y, model_name, model_list):
 	print("testAssistModel : END")
 
 def testModel(X, Y):
-	print("testLoadModel : BEGIN")
+	print("testModel : BEGIN")
 
 	a = model()
 	"""model(
@@ -102,7 +106,7 @@ def testModel(X, Y):
 	print("cross_validation_Classifier:  ", res)
 	print("cross_validation_Classifier (moyenne)  ", res.mean())	"""
 	print(a)
-	print("testLoadModel : END")
+	print("testModel : END")
 
 if __name__=="__main__":
 
@@ -117,10 +121,6 @@ if __name__=="__main__":
 	print(len(X_train))
 	print(len(Y_train))
 
-	
-			
-
-	
 	#TEST WITH RANDOM DATA
 	#X_train = np.random.rand(100,203) #105752 lignes et 203 colonnes pour les images
 	#Y_train = np.random.randint(7,size=100) #105752 lignes et 203 colonnes pour les images

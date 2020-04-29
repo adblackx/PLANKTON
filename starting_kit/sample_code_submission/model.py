@@ -45,6 +45,7 @@ from sys import argv
 from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
 from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.ensemble import VotingClassifier
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 
 
 class model(BaseEstimator):
@@ -123,16 +124,13 @@ class model(BaseEstimator):
 		if (self.num_train_samples != num_train_samples):
 			print("model.py, fit: THERE IS A PROBLEM WITH THE DATA")
 
-		"""if not self.isFitted :
+		if not self.isFitted :
 
 			# We use here preprocessing
 			x1,y1 = prep.Preprocessor.construct_features(X,y)
-			#x1 = prep.Preprocessor().fit_transform(x1,y1)
-			#x1, y1 = X,y
-			class_to_find_voting_model = plkc.assistModel(x1,y1,prepo=prep.Preprocessor())
-			#class_to_find_voting_model.setModels(self.model_name, self.model_list)
-			class_to_find_voting_model.setModelsPrepro(self.model_name, self.model_list, )
 
+			class_to_find_voting_model = plkc.assistModel(x1,y1,prepo=prep.Preprocessor())
+			class_to_find_voting_model.setModelsPrepro(self.model_name, self.model_list, )
 			voting_model = class_to_find_voting_model.getModelPrepro()
 			pipe_class = Pipeline([
 						('preprocessing', self.prepo ),
@@ -142,29 +140,12 @@ class model(BaseEstimator):
 			self.clf = pipe_class
 			self.clf.fit(x1, y1)
 			self.isFitted = True # so we generate the best model here
-			#self.save()
-		"""
-		if not self.isFitted :
-			#hardcoded version
 
-			x1,y1 = prep.Preprocessor.construct_features(X,y)
-			a = plkc.assistModel(x1,y1,prepo=prep.Preprocessor())
-
-			voting_model = a.voting(self.model_list)
-			pipe_class = Pipeline([
-						('preprocessing', self.prepo ),
-						('voting', voting_model)
-						])
-
-			self.clf = pipe_class
-			self.clf.fit(x1, y1)
 
 		else: 
 			# it is the case that the best model is generated, so we load it, no need to fit again 
 			# it takes too long time...
 			x1,y1 = prep.Preprocessor.construct_features(X,y)
-			#x1, y1 = X,y
-			#self = self.load
 
 			self.clf.fit(x1, y1)
 		print("FIT MON MODEL")
