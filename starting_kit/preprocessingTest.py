@@ -1,71 +1,53 @@
 """
 Created on Sat Mar 27 2020
-Last revised: April 4, 2020
-@author: Team Plankton
-This program preprocessed data for classification.
-Actually this program handle pca, features selection and outliers deletion
+Last revised: Mai 7, 2020
+@author: MUSSARD Romain
+This program test plkPreprocessing.py
 
-Last update (April 4):
-    - Creation of findBestSkb
-    - Creation of findBestPca
-    - Creation of findBestkneighbors
 """
-model_dir = 'sample_code_submission/'                        # Change the model to a better one once you have one!
+
+
+
+'''A modifier pour réaliser ses propres tests'''
+    
+model_dir = 'sample_code_submission/'
 result_dir = 'sample_result_submission/' 
 problem_dir = 'ingestion_program/'  
 score_dir = 'scoring_program/'
-from sys import path; path.append(model_dir); path.append(problem_dir); path.append(score_dir); 
+#data_dir = 'public_data'
+data_dir = 'public_data_raw_gaiasavers'   #POUR TRAVAILLER SUR RAW DATA
+data_name = 'plankton'
 
-import pandas as pd
-import numpy as np
-from scipy import stats
-from sklearn.neighbors import LocalOutlierFactor
-from sklearn import preprocessing
-from sklearn.preprocessing import StandardScaler
-from sklearn.decomposition import PCA
-from sklearn.feature_selection import SelectKBest
-from sklearn.feature_selection import chi2
+'''Fin de modification'''
+
+from sys import path; path.append(model_dir); path.append(problem_dir); path.append(score_dir); 
 from sklearn.preprocessing import MinMaxScaler
-from sklearn.base import BaseEstimator
-from sklearn.tree import DecisionTreeClassifier
-import plkClassifier as plkc
-import model as plkm
 from libscores import get_metric
 from sklearn.metrics import make_scorer
 from sklearn.model_selection import cross_val_score
 from sklearn.pipeline import Pipeline
-from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
+from sklearn.ensemble import RandomForestClassifier
 from data_manager import DataManager
-from sklearn.preprocessing import StandardScaler, MinMaxScaler
 import plkPreprocessing as plkp
 from plkPreprocessing import Preprocessor
-from sample_code_submission.plkPreprocessing import binariseImage
-#data_dir = 'public_data'
-data_dir = 'public_data_raw_gaiasavers'          # POUR TRAVAILLER SUR RAW DATA
-data_name = 'plankton'
 
-#Prepro = Preprocessor()
 
-'''
+Prepro = Preprocessor()
+
 D = DataManager(data_name, data_dir) # Load data
 print("*** Original data ***")
 print(D)
 
-#Prepro.fit(D.data['X_train'], D.data['Y_train'])
-#D.data['X_train'] = Prepro.transform(D.data['X_train'])
+
 D.data['X_train'] = Prepro.fit_transform(D.data['X_train'], D.data['Y_train'])
 D.data['X_valid'] = Prepro.transform(D.data['X_valid'])
 D.data['X_test'] = Prepro.transform(D.data['X_test'])
-D.feat_name = np.array(['PC1', 'PC2'])
-D.feat_type = np.array(['Numeric', 'Numeric'])
 print("*** Transformed data ***")
 print(D)
 
-'''
 
-'''
 D = DataManager(data_name, data_dir) # Load data
-print("***Outliers Deletion***")
+print("***Start Search Best Parameter***")
 print(D)
 X = D.data['X_train']
 Y = D.data['Y_train'].ravel()
@@ -96,11 +78,9 @@ print("best nb features for skb  = ", res1)
 res2 = plkp.findBestPca(X, Y, nb_feat=res1)
 print("best nb features for pca  = ", res2)
 
-#print("best nb features for otuliersDeletion  = ", res)
+print("best nb features for otuliersDeletion  = ", res)
 print("best nb features for skb  = ", res1)
 print("best nb features for pca  = ", res2)
-'''
-
 
 
 D = DataManager(data_name, data_dir) # Load data
@@ -109,10 +89,9 @@ print(D)
 X_test = D.data['X_train']
 Y_test = D.data['Y_train'].ravel()
 
-#X_test = plkp.createNewFeatures(X_test)
-#X_test, Y_test = Preprocessor.outliersDeletion(X_test, Y_test)
-X_test, Y_test = Preprocessor.construct_features(X_test, Y_test)
 
+'''On calcul le score après preprocessing'''
+X_test, Y_test = Preprocessor.construct_features(X_test, Y_test)
 
 clf = RandomForestClassifier(n_estimators=196, max_depth=None, min_samples_split=2, random_state=1)
 prepro = Preprocessor()
