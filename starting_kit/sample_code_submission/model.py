@@ -26,6 +26,10 @@ Model:
 				  for the data
 last updates:
 	- nous avons mis des commentaires partout pour eclaircir comment la classe fonctionne
+	- ON PEUT A PRESENT CHOISIR	:
+		- UN ENSEMBLE DE MODELES
+		- UN ENSEMBLE DE PARAMETERES A TESTER POUR CHAQUE MODELE
+		- LE TOUT SERA COUPLE EN UN VOTING
 	- model_name et model_list SONT UTILISE QUE POUR HARDCODER SI ON VEUT POUR ACCELERER LES TESTS
 	MAIS DANS LA PLUPART DU TEMPS ON CHERCHE QUAND MEME LES MEILLEURS PARAMETRES SI isFitted = FALSE
 			
@@ -66,7 +70,7 @@ class model(BaseEstimator):
 	def __init__(self, isFitted=False, model_name = ["ExtraTreesClassifier","RandomForestClassifier"],
 			model_list = [ ExtraTreesClassifier(n_estimators=250, min_samples_split=2,random_state=2) ,
 			RandomForestClassifier(n_estimators=200, min_samples_split=2,random_state=2)], 
-			clf=None):
+			clf=None, dict_list=None):
 
 		"""
 		We we call the constructor of this class, if isFitted = False then we generate a model
@@ -78,8 +82,12 @@ class model(BaseEstimator):
 		----------
 		isFitted: Boolean that used to see if we generate the model or if we load it 
 				in the function fit
-			
-		This function check if 
+		model_name : liste of model's name that will be tested
+		model_list : liste of model
+		dict_list : contains a list of dict, each dict contains:
+				- model's name, 
+				-list of parameters names, 
+				-and a list of parameter's value
 		"""
 		
 		self.clf = clf
@@ -90,13 +98,10 @@ class model(BaseEstimator):
 		self.isFitted = isFitted
 		self.model_name = model_name
 		self.model_list = model_list
-		self.entier = 0
+		self.dict_list = dict_list
 
 
 	def fit(self, X, y):
-		#print( self.entier, self.isFitted, print(self.clf), print(self.test))
-		self.entier+=1
-
 		"""
 		This is the training method: parameters are adjusted with training data.
 		In fact, we start by checking that the data are the same.
@@ -124,13 +129,44 @@ class model(BaseEstimator):
 		if (self.num_train_samples != num_train_samples):
 			print("model.py, fit: THERE IS A PROBLEM WITH THE DATA")
 
+		"""if not self.isFitted :
+			#hardcoded version
+			# this hardcode work on
+
+			x1,y1 = prep.Preprocessor.construct_features(X,y)
+			a = plkc.assistModel(x1,y1,prepo=prep.Preprocessor())
+
+			voting_model = a.voting(self.model_list)
+			pipe_class = Pipeline([
+						('preprocessing', self.prepo ),
+						('voting', voting_model)
+						])
+
+			self.clf = pipe_class
+			self.clf.fit(x1, y1)	"""
+
 		if not self.isFitted :
 
 			# We use here preprocessing
 			x1,y1 = prep.Preprocessor.construct_features(X,y)
 
 			class_to_find_voting_model = plkc.assistModel(x1,y1,prepo=prep.Preprocessor())
-			class_to_find_voting_model.setModelsPrepro(self.model_name, self.model_list, )
+
+			if self.dict_list == None: # if we don't set a dictionary we use this one as default
+				d1 = { 
+					 "name" :"ExtraTreesClassifier",
+					 "param_name" : ["n_estimators", "min_samples_split","random_state"],
+					 "param_val" : [[200,250], [2], [2]]
+				}
+
+				d2 = { 
+					 "name" :"RandomForestClassifier",
+					 "param_name" : ["n_estimators", "min_samples_split","random_state"],
+					 "param_val" : [[200,250], [2], [2]]
+				}
+				self.dict_list = [d1, d2]
+			
+			class_to_find_voting_model.setModelsPrepro(self.model_name, self.model_list, self.dict_list, setBest=True )
 			voting_model = class_to_find_voting_model.getModelPrepro()
 			pipe_class = Pipeline([
 						('preprocessing', self.prepo ),
@@ -140,6 +176,7 @@ class model(BaseEstimator):
 			self.clf = pipe_class
 			self.clf.fit(x1, y1)
 			self.isFitted = True # so we generate the best model here
+
 
 
 		else: 
@@ -229,3 +266,96 @@ class model(BaseEstimator):
 			print("Model reloaded from: " + modelfile)
 
 		return self
+
+def testclassCVM(X, Y, model):
+
+	"""
+	This function runs classCVM and print results
+
+	Parameters
+	----------
+	X: Data
+	Y: model's label (classes)
+	model: the model
+	"""
+	print("testclassCVM : BEGIN")
+	cvm = plkc.classCVM(X,Y)
+	cvm.process(X,Y,model)
+	cvm.cross_validation_Classifier()
+	cvm.training_score_Classifier()
+	print("testclassCVM : END")
+
+def testModel(X, Y):
+	"""
+	This function runs test the model with default values and print results
+
+	Parameters
+	----------
+	X: Data
+	Y: model's label (classes)
+	"""
+
+	print("testModel : BEGIN")
+	a = model()
+	a.fit(X,Y)
+	testclassCVM(X,Y,a)
+
+	#if you want to print
+	"""scoring_function1 = getattr(metrics, "balanced_accuracy_score")
+	res = cross_val_score(a, X, Y, cv=5 , scoring = make_scorer(scoring_function1))
+	print("cross_validation_Classifier:  ", res)
+	print("cross_validation_Classifier (moyenne)  ", res.mean())	"""
+	print(a)
+	print("testModel : END")
+
+def testModel1(X, Y):
+	"""
+	This function runs test A way to run the model with customised parameters
+
+	Parameters
+	----------
+	X: Data
+	Y: model's label (classes)
+	"""
+	d1 = { 
+					 "name" :"ExtraTreesClassifier",
+					 "param_name" : ["n_estimators", "min_samples_split","random_state"],
+					 "param_val" : [[200,250], [2], [2]]
+				}
+
+	d2 = { 
+		 "name" :"RandomForestClassifier",
+		 "param_name" : ["n_estimators", "min_samples_split","random_state"],
+		 "param_val" : [[200,250], [2], [2]]
+	}
+
+	d = [d1,d2]
+	model_name = ["ExtraTreesClassifier","RandomForestClassifier"]
+	model_list = [ ExtraTreesClassifier(n_estimators=250, min_samples_split=2,random_state=2) ,
+			RandomForestClassifier(n_estimators=200, min_samples_split=2,random_state=2)]
+
+	a = model(model_name=model_name,model_list = model_list, dict_list = d, isFitted=False )
+	a.fit(X,Y)
+	testclassCVM(X,Y,a)
+
+if __name__=="__main__":
+	"""data_dir = 'public_data_raw_gaiasavers'          # POUR TRAVAILLER SUR RAW DATA
+	data_name = 'plankton'
+	D = DataManager(data_name, data_dir) 
+
+	X_train = D.data['X_train']
+	Y_train = D.data['Y_train'].ravel()
+
+	print(len(X_train[0]))
+	print(len(X_train))
+	print(len(Y_train))"""
+
+	#TEST WITH RANDOM DATA
+	X_train = np.random.randint(low=0, high=255, size=(203, 10000))
+	Y_train = np.random.randint(7,size=203) 
+	#Test1
+	#testModel(X_train, Y_train)
+
+	#Test2
+	testModel1(X_train, Y_train)
+
